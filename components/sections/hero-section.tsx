@@ -17,7 +17,7 @@ export function HeroSection() {
           className="text-center max-w-4xl mx-auto"
         >
           <h1 className="text-4xl md:text-6xl font-bold mb-6">
-            Expert Full Stack Development Teams
+           Codeeza Expert Full Stack Development Teams
           </h1>
           <p className="text-xl text-muted-foreground mb-8">
             Transform your digital vision with our dedicated development teams specializing in modern web technologies

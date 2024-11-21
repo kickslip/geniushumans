@@ -29,7 +29,7 @@ export function Navigation() {
         <nav className="flex items-center justify-between h-16">
           <Link href="/" className="flex items-center space-x-2">
             <Code2 className="h-6 w-6" />
-            <span className="font-bold text-xl">GeniusHumans</span>
+            <span className="font-bold text-xl to-red-600">Codeeza</span>
           </Link>
 
           {/* Desktop Navigation */}
