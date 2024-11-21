@@ -23,7 +23,7 @@ export function MainNav() {
         <div className="flex h-16 items-center justify-between">
           <Link href="/" className="flex items-center space-x-2">
             <Code className="h-6 w-6" />
-            <span className="font-bold text-xl">GeniusHumans</span>
+            <span className="font-bold text-xl  ring-red-800"><h3 className="text-red-600 ">Codeeza</h3></span>
           </Link>
 
           <nav className="hidden md:flex items-center space-x-6">
