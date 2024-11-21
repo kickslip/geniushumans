@@ -43,6 +43,7 @@ Password
 AdminTable>>
 Sidebar>>
 Grab data of Bookings
+Grab data of Connsultation
 
 Evey page  you go to protected by Layout  file
 
