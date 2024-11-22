@@ -29,8 +29,12 @@ export function Navigation() {
       <div className="container mx-auto px-4">
         <nav className="flex items-center justify-between h-16">
           <Link href="/" className="flex items-center space-x-2">
-            <Code2 className="h-6 w-6" />
-            <span className="font-bold text-xl to-red-600">Codeeza</span>
+          <img 
+              src="logo.png" 
+              alt="Logo" 
+              className="h-6 w-8"
+            />
+            <span className="font-bold text-xl text-red-600">Codeeza</span>
           </Link>
 
           {/* Desktop Navigation */}
