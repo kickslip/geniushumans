@@ -34,7 +34,7 @@ export function Navigation() {
               alt="Logo" 
               className="h-6 w-8"
             />
-            <span className="font-bold text-xl text-red-600">Codeeza</span>
+            <span className="font-bold text-xl text-red-500">Codeeza</span>
           </Link>
 
           {/* Desktop Navigation */}
