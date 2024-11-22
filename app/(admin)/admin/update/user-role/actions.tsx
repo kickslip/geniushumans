@@ -44,11 +44,7 @@ export async function fetchAllUsers(): Promise<FetchAllUsersResult> {
         id: true,
         username: true,
         email: true,
-        firstName: true,
-        lastName: true,
-        displayName: true,
         role: true,
-        companyName: true,
         createdAt: true,
       },
     });
