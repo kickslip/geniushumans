@@ -13,7 +13,7 @@ import { Menu } from 'lucide-react';
 
 const navItems = [
   { href: 'Home', label: 'Home' },
-  { href: '/login', label: 'Login/Register' },
+  { href: '/log-sign', label: 'Login/Register' },
   { href: '/book', label: 'Book Now' },
   { href: '#tech-stack', label: 'Tech Stack' },
   { href: '#services', label: 'Services' },
