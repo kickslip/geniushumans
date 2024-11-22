@@ -9,7 +9,7 @@ import {
   FormMessage,
 } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
-import { loginSchema, LoginValues } from "@/lib/validation";
+import { loginSchema, loginValues } from "@/lib/validation";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useState, useTransition } from "react";
 import { useForm } from "react-hook-form";
@@ -22,15 +22,15 @@ export default function LoginForm() {
 
   const [isPending, startTransition] = useTransition();
 
-  const form = useForm<LoginValues>({
+  const form = useForm<loginValues>({
     resolver: zodResolver(loginSchema),
     defaultValues: {
-      username: "",
+      email: "",
       password: "",
     },
   });
 
-  async function onSubmit(values: LoginValues) {
+  async function onSubmit(values: loginValues) {
     setError(undefined);
     startTransition(async () => {
       const result = await login(values);
@@ -47,12 +47,12 @@ export default function LoginForm() {
         {error && <p className="text-center text-destructive">{error}</p>}
         <FormField
           control={form.control}
-          name="username"
+          name="email"
           render={({ field }) => (
             <FormItem>
-              <FormLabel>Username</FormLabel>
+              <FormLabel>Email</FormLabel>
               <FormControl>
-                <Input placeholder="Username" {...field} />
+                <Input placeholder="email" {...field} />
               </FormControl>
               <FormMessage />
             </FormItem>

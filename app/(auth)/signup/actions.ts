@@ -2,7 +2,7 @@
 
 import { lucia } from "@/auth";
 import prisma from "@/lib/prisma";
-import { registrationSchema, RegistrationFormData } from "@/lib/validation";
+import { signUpSchema, signUpValues } from "@/lib/validation";
 import { hash } from "@node-rs/argon2";
 import { generateIdFromEntropySize } from "lucia";
 import { isRedirectError } from "next/dist/client/components/redirect";
@@ -10,10 +10,10 @@ import { cookies } from "next/headers";
 import { redirect } from "next/navigation";
 
 export async function signUp(
-  formData: RegistrationFormData
+  formData: signUpValues
 ): Promise<{ error?: string } | never> {
   try {
-    const validatedData = registrationSchema.parse(formData);
+    const validatedData = signUpSchema.parse(formData);
 
     const userId = generateIdFromEntropySize(10);
 
@@ -59,35 +59,14 @@ export async function signUp(
         data: {
           id: userId,
           username: validatedData.username,
-          firstName: validatedData.firstName,
-          lastName: validatedData.lastName,
-          displayName: `${validatedData.firstName} ${validatedData.lastName}`,
           email: validatedData.email,
           passwordHash,
-          vatNumber: validatedData.vatNumber,
           phoneNumber: validatedData.phoneNumber,
-          streetAddress: validatedData.streetAddress,
-          addressLine2: validatedData.addressLine2,
-          suburb: validatedData.suburb,
-          townCity: validatedData.townCity,
-          postcode: validatedData.postcode,
-          country: validatedData.country,
-          position: validatedData.position,
-          natureOfBusiness: validatedData.natureOfBusiness,
-          currentSupplier: validatedData.currentSupplier,
-          otherSupplier: validatedData.otherSupplier,
-          resellingTo: validatedData.resellingLocation,
-          salesRep: validatedData.salesRep,
-          website: validatedData.website || null,
-          companyName: validatedData.companyName,
-          ckNumber: validatedData.ckNumber,
-          agreeTerms: validatedData.agreeTerms,
-          role: "USER",
         },
       });
     });
 
-    redirect("/register-pending-message");
+    redirect("/");
   } catch (error) {
     if (isRedirectError(error)) throw error;
     console.error(error);

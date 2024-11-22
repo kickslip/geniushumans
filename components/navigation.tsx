@@ -12,7 +12,8 @@ import {
 import { Menu } from 'lucide-react';
 
 const navItems = [
-  { href: '/', label: 'Home' },
+  { href: 'Home', label: 'Home' },
+  { href: '/login', label: 'Login/Register' },
   { href: '/book', label: 'Book Now' },
   { href: '#tech-stack', label: 'Tech Stack' },
   { href: '#services', label: 'Services' },
