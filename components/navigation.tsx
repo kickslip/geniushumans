@@ -10,6 +10,7 @@ import {
   SheetTrigger,
 } from '@/components/ui/sheet';
 import { Menu } from 'lucide-react';
+import Settings from './Settings';
 
 const navItems = [
   { href: 'Home', label: 'Home' },
@@ -34,7 +35,7 @@ export function Navigation() {
               alt="Logo" 
               className="h-6 w-8"
             />
-            <span className="font-bold text-xl text-red-600">Codeeza</span>
+            <span className="font-bold text-xl text-red-500">Codeeza</span>
           </Link>
 
           {/* Desktop Navigation */}
@@ -70,6 +71,7 @@ export function Navigation() {
                   </Link>
                 ))}
               </nav>
+              <Settings/>
             </SheetContent>
           </Sheet>
         </nav>

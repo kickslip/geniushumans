@@ -4,10 +4,11 @@ import React from 'react';
 import { Card } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { UserPlus, LogIn } from 'lucide-react';
+import Link from 'next/link';
 
 const AuthOptions = () => {
   return (
-    <div className="min-h-screen bg-gray-50 flex items-center justify-center p-4">
+    <div className="min-h-screen bg-black flex items-center justify-center p-4">
       <Card className="w-full max-w-md p-8 space-y-8 bg-white shadow-lg">
         <div className="text-center space-y-2">
           <h1 className="text-3xl font-bold text-gray-900">Welcome</h1>
@@ -57,7 +58,7 @@ const AuthOptions = () => {
             onClick={() => console.log('Register clicked')}
           >
             <UserPlus className="w-5 h-5" />
-            <span>Create Account</span>
+            <Link href="/signup">Create Account</Link>
           </Button>
 
           <Button 
@@ -66,7 +67,7 @@ const AuthOptions = () => {
             onClick={() => console.log('Login clicked')}
           >
             <LogIn className="w-5 h-5" />
-            <span>Sign In</span>
+            <Link href="/login">Sign In</Link>
           </Button>
         </div>
 
