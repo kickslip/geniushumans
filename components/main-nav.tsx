@@ -1,10 +1,8 @@
 "use client";
 
 import Link from "next/link";
-// import { Code } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
-import Image from "next/image";
 
 const routes = [
   { name: "Home", path: "/" },
@@ -14,8 +12,7 @@ const routes = [
   { name: "Contact", path: "/#contact" },
 ];
 
-const size = 'large'; // or whatever size value you need
-
+const size = 'large';
 
 export function MainNav() {
   return (
@@ -23,14 +20,14 @@ export function MainNav() {
       <div className="container mx-auto px-4">
         <div className="flex h-16 items-center justify-between">
           <Link href="/" className="flex items-center space-x-2">
-            {/* <Code className="h-6 w-6" /> */}
-            <Image 
-  src="/logo.png" 
-  alt="Codeeza logo" 
-  width={24} 
-  height={24} 
-  className="h-6 w-6"
-/>            <span className="font-bold text-xl  ring-red-800"><h3 className="text-red-600 ">Codeeza</h3></span>
+            <img 
+              src="logo.png" 
+              alt="Logo" 
+              className="h-6 w-6"
+            />
+            <span className="font-bold text-xl">
+              <h3 className="text-red-600">Codeeza</h3>
+            </span>
           </Link>
 
           <nav className="hidden md:flex items-center space-x-6">
@@ -51,14 +48,12 @@ export function MainNav() {
           </nav>
 
           <Button className={`btn-outline ${size} md:hidden`}>
-  {/* <Code className="h-4 w-4" /> */}
-  <Image 
-  src="/logo.png" 
-  alt="Codeeza logo" 
-  width={16} 
-  height={16} 
-  className="h-4 w-4"
-/></Button>
+            <img 
+              src="logo.png" 
+              alt="Logo" 
+              className="h-4 w-4"
+            />
+          </Button>
         </div>
       </div>
     </header>
