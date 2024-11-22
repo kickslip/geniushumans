@@ -29,7 +29,7 @@ export default function SignUpForm() {
       username: "",
       password: "",
       email: "",
-      phoneNumber: "",
+      phoneNumber: 0,
     },
   });
 

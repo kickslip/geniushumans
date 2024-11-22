@@ -1,6 +1,7 @@
 import { z } from "zod";
 
 const requiredString = z.string().trim().min(1, "Required");
+const requiredInt = z.number().int().positive("Must be greater than 0");
 
 export const signUpSchema = z.object({
     email: requiredString.email("Invalid email address"),
@@ -9,7 +10,7 @@ export const signUpSchema = z.object({
         "Only letters, numbers, - and _ allowed"
     ),
     password: requiredString.min(8, "Must be at least 8 characters"),
-    phoneNumber: requiredString.min(10, "Must be at least 10 characters"),
+    phoneNumber: requiredInt.min(10, "Must be at least 10 characters"),
 });
 
 export type signUpValues = z.infer<typeof signUpSchema>;
