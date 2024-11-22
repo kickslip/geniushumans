@@ -6,6 +6,7 @@ import { Button } from "@/components/ui/button";
 
 const routes = [
   { name: "Home", path: "/" },
+  { name: "Login/Register", path: "/login"},
   { name: "Tech Stack", path: "/#tech-stack" },
   { name: "Services", path: "/#services" },
   { name: "Pricing", path: "/#pricing" },

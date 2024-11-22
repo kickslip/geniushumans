@@ -17,4 +17,17 @@ model User {
   phoneNumber  String
   createdAt    DateTime @default(now())
   updatedAt    DateTime @updatedAt
+  Session      Session[]
+
+  @@map("users")
+}
+
+model Session {
+  id           String   @id @default(cuid())
+  sessionToken String   @unique
+  userId       String
+  expires      DateTime
+  user         User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@map("sessions")
 }

@@ -41,3 +41,5 @@ function LoginPage() {
     </main>
   );
 }
+
+export default LoginPage;
