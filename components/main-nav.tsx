@@ -3,10 +3,11 @@
 import Link from "next/link";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
+import Settings from "./Settings";
 
 const routes = [
   { name: "Home", path: "/" },
-  { name: "Login/Register", path: "/login"},
+  { name: "Login/Register", path: "/log-sign"},
   { name: "Tech Stack", path: "/#tech-stack" },
   { name: "Services", path: "/#services" },
   { name: "Pricing", path: "/#pricing" },
@@ -46,6 +47,7 @@ export function MainNav() {
             <Button asChild>
               <Link href="/book">Book Now</Link>
             </Button>
+            <Settings/>
           </nav>
 
           <Button className={`btn-outline ${size} md:hidden`}>
