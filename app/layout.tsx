@@ -1,4 +1,10 @@
+<<<<<<< HEAD
 import './globals.css'
+=======
+// app/layout.tsx
+
+import './globals.css';
+>>>>>>> 4a72aa36f2cb0937f820d920c3f39c41bf93f506
 import type { Metadata } from 'next';
 import { Inter } from 'next/font/google';
 import { ThemeProvider } from '@/components/theme-provider';
