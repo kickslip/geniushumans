@@ -31,10 +31,14 @@ export default function LoginForm() {
   });
 
   async function onSubmit(values: loginValues) {
+    const trimmedValues = {
+      email: values.email.trim(),
+      password: values.password.trim(),
+    };
+
     setError(undefined);
     startTransition(async () => {
-      const result = await login(values);
-      // Check if result exists and has an error property
+      const result = await login(trimmedValues);
       if (result && result.error) {
         setError(result.error);
       }
@@ -43,8 +47,7 @@ export default function LoginForm() {
 
   return (
     <Form {...form}>
-      <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-3">
-        {error && <p className="text-center text-destructive">{error}</p>}
+       <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
         <FormField
           control={form.control}
           name="email"
@@ -52,12 +55,18 @@ export default function LoginForm() {
             <FormItem>
               <FormLabel>Email</FormLabel>
               <FormControl>
-                <Input placeholder="email" {...field} />
+                <Input
+                  placeholder="email"
+                  autoComplete="email"
+                  {...field}
+                  onChange={e => field.onChange(e.target.value.trim())}
+                />
               </FormControl>
               <FormMessage />
             </FormItem>
           )}
         />
+
         <FormField
           control={form.control}
           name="password"
@@ -65,7 +74,12 @@ export default function LoginForm() {
             <FormItem>
               <FormLabel>Password</FormLabel>
               <FormControl>
-                <PasswordInput placeholder="Password" {...field} />
+                <PasswordInput
+                  placeholder="Password"
+                  autoComplete="current-password"
+                  {...field}
+                  onChange={e => field.onChange(e.target.value.trim())}
+                />
               </FormControl>
               <FormMessage />
             </FormItem>

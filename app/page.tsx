@@ -14,7 +14,6 @@ export default function Home() {
       <PricingSection />
       <ContactSection />
       <TechStackSlider />
-
     </main>
   );
 }

@@ -14,7 +14,7 @@ model User {
   username     String  @unique
   email        String  @unique
   passwordHash String
-  phoneNumber  String
+  phoneNumber  Int
   createdAt    DateTime @default(now())
   updatedAt    DateTime @updatedAt
   Session      Session[]

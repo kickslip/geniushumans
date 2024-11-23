@@ -1,97 +1,74 @@
-"use server";
+"use server"
 
-import { lucia } from "@/auth";
 import prisma from "@/lib/prisma";
 import { loginSchema, loginValues } from "@/lib/validation";
-import { verify } from "@node-rs/argon2";
 import { isRedirectError } from "next/dist/client/components/redirect";
+import { verify } from "@node-rs/argon2";
+import { lucia } from "@/auth";
+import { generateId } from "lucia";
 import { cookies } from "next/headers";
 import { redirect } from "next/navigation";
-import { User } from "@prisma/client";  // Import the User type from Prisma
-
-// enum UserRole {
-//   USER = "USER",
-//   CUSTOMER = "CUSTOMER",
-//   SUBSCRIBER = "SUBSCRIBER",
-//   PROMO = "PROMO",
-//   DISTRIBUTOR = "DISTRIBUTOR",
-//   SHOPMANAGER = "SHOPMANAGER",
-//   EDITOR = "EDITOR",
-//   ADMIN = "ADMIN",
-// }
-
-// const roleRoutes: Record<UserRole, string> = {
-//   [UserRole.USER]: "/register-pending-message",
-//   [UserRole.CUSTOMER]: "/customer",
-//   [UserRole.SUBSCRIBER]: "/subscriber",
-//   [UserRole.PROMO]: "/promo",
-//   [UserRole.DISTRIBUTOR]: "/distributor",
-//   [UserRole.SHOPMANAGER]: "/shop",
-//   [UserRole.EDITOR]: "/editor",
-//   [UserRole.ADMIN]: "/admin",
-// };
 
 export async function login(
-  credentials: loginValues
-): Promise<{ error: string } | void> {
-  try {
-    const { email, password } = loginSchema.parse(credentials);
+    credentials: loginValues,
+): Promise<{error: string}> {
+    try {
+        const {email, password} = loginSchema.parse(credentials)
 
-    const existingUser = await prisma.user.findFirst({
-      where: {
-        email: {
-          equals: email,
-          mode: "insensitive",
-        },
-      },
-    }) as User | null;  // Explicitly type the result
+        const existingUser = await prisma.user.findFirst({
+            where: {
+                email: {
+                    equals: email,
+                    mode: "insensitive"
+                }
+            }
+        })
 
-    if (!existingUser || !existingUser.passwordHash) {
-      return {
-        error: "Incorrect username or password",
-      };
+        if (!existingUser || !existingUser.passwordHash) {
+            return {
+                error: "Incorrect email or password"
+            }
+        }
+
+        const validPassword = await verify(existingUser.passwordHash, password, {
+            memoryCost: 19456,
+            timeCost: 2,
+            outputLen: 32,
+            parallelism: 1,
+        })
+
+        if (!validPassword) {
+            return {
+                error: "Incorrect email or password"
+            }
+        }
+
+        // Generate session token and create session
+        const sessionToken = generateId(40);
+        const session = await prisma.session.create({
+            data: {
+                id: generateId(40),
+                userId: existingUser.id,
+                expires: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000),
+                sessionToken: sessionToken
+            }
+        });
+
+        // Create Lucia session and set cookie
+        const luciaSession = await lucia.createSession(existingUser.id, {})
+        const sessionCookie = lucia.createSessionCookie(luciaSession.id);
+        cookies().set(
+            sessionCookie.name,
+            sessionCookie.value,
+            sessionCookie.attributes
+        );
+
+        return redirect("/")
+    } catch (error) {
+        if (isRedirectError(error)) throw error;
+        console.error(error);
+        return {
+            error: "Something went wrong. Please try again.",
+        };
     }
-
-    const validPassword = await verify(existingUser.passwordHash, password, {
-      memoryCost: 19456,
-      timeCost: 2,
-      outputLen: 32,
-      parallelism: 1,
-    });
-
-    if (!validPassword) {
-      return {
-        error: "Incorrect username or password",
-      };
-    }
-
-  //   const userRole = existingUser.role as UserRole;
-
-  //   if (userRole === UserRole.USER) {
-  //     // For USER role, don't create a session, just redirect
-  //     return redirect("/register-pending-message");
-  //   } else {
-  //     // For all other roles, create a session and redirect
-  //     const session = await lucia.createSession(existingUser.id, {});
-  //     const sessionCookie = lucia.createSessionCookie(session.id);
-  //     cookies().set(
-  //       sessionCookie.name,
-  //       sessionCookie.value,
-  //       sessionCookie.attributes
-  //     );
-
-  //     const redirectPath = roleRoutes[userRole] || "/";
-  //     return redirect(redirectPath);
-  //   }
-   } catch (error) {
-    if (isRedirectError(error)) throw error;
-     console.error(error);
-     return {
-      error: "Something went wrong. Please try again.",
-     };
-   }
-  }
-  
-
-
- 
+}
