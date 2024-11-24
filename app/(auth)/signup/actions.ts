@@ -1,19 +1,18 @@
 "use server";
 
-import { lucia } from "@/auth";
 import prisma from "@/lib/prisma";
-import { signUpSchema, signUpValues } from "@/lib/validation";
+import { RegistrationFormData, registrationSchema } from "@/lib/validations";
+
 import { hash } from "@node-rs/argon2";
 import { generateIdFromEntropySize } from "lucia";
 import { isRedirectError } from "next/dist/client/components/redirect";
-import { cookies } from "next/headers";
 import { redirect } from "next/navigation";
 
 export async function signUp(
-  formData: signUpValues
+  formData: RegistrationFormData
 ): Promise<{ error?: string } | never> {
   try {
-    const validatedData = signUpSchema.parse(formData);
+    const validatedData = registrationSchema.parse(formData);
 
     const userId = generateIdFromEntropySize(10);
 
@@ -54,7 +53,7 @@ export async function signUp(
       };
     }
 
-    await prisma.$transaction(async (tx) => {
+    await prisma.$transaction(async tx => {
       await tx.user.create({
         data: {
           id: userId,

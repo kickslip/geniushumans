@@ -9,20 +9,21 @@ import {
   FormMessage,
 } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
-import { loginSchema, loginValues } from "@/lib/validation";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useState, useTransition } from "react";
 import { useForm } from "react-hook-form";
 import { login } from "./actions";
 import LoadingButton from "@/components/LoadingButton";
 import { PasswordInput } from "@/components/PasswordInput";
+import { Alert, AlertDescription } from "@/components/ui/alert";
+import Link from "next/link"; // Make sure to import Link
+import { loginSchema, LoginValues } from "@/lib/validations";
 
 export default function LoginForm() {
   const [error, setError] = useState<string>();
-
   const [isPending, startTransition] = useTransition();
 
-  const form = useForm<loginValues>({
+  const form = useForm<LoginValues>({
     resolver: zodResolver(loginSchema),
     defaultValues: {
       email: "",
@@ -30,7 +31,7 @@ export default function LoginForm() {
     },
   });
 
-  async function onSubmit(values: loginValues) {
+  async function onSubmit(values: LoginValues) {
     const trimmedValues = {
       email: values.email.trim(),
       password: values.password.trim(),
@@ -47,7 +48,13 @@ export default function LoginForm() {
 
   return (
     <Form {...form}>
-       <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
+      <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
+        {error && (
+          <Alert variant="destructive">
+            <AlertDescription>{error}</AlertDescription>
+          </Alert>
+        )}
+
         <FormField
           control={form.control}
           name="email"
@@ -56,7 +63,7 @@ export default function LoginForm() {
               <FormLabel>Email</FormLabel>
               <FormControl>
                 <Input
-                  placeholder="email"
+                  placeholder="Email"
                   autoComplete="email"
                   {...field}
                   onChange={e => field.onChange(e.target.value.trim())}
@@ -85,9 +92,22 @@ export default function LoginForm() {
             </FormItem>
           )}
         />
-        <LoadingButton loading={isPending} type="submit" className="w-full">
-          Log in
-        </LoadingButton>
+
+        <div className="space-y-4">
+          <LoadingButton loading={isPending} type="submit" className="w-full">
+            Log in
+          </LoadingButton>
+
+          {/* Fixed Forgot Password Link */}
+          <div className="text-center">
+            <Link
+              href="/forgot-password"
+              className="inline-block px-4 py-2 text-sm text-blue-500 hover:text-blue-700 hover:underline"
+            >
+              Forgot password?
+            </Link>
+          </div>
+        </div>
       </form>
     </Form>
   );
