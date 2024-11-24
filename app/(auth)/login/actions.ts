@@ -42,7 +42,12 @@ export async function login(
             }
         }
 
-        const session = await lucia.createSession(existingUser.id, {})
+        // Modified session creation to use correct argument format
+        const session = await lucia.createSession(
+            existingUser.id,
+            {} // attributes - can be empty if no additional data needed
+        );
+        
         const sessionCookie = lucia.createSessionCookie(session.id);
         cookies().set(
            sessionCookie.name,
