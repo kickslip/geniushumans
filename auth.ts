@@ -14,7 +14,7 @@ interface DatabaseUserAttributes {
   avatarUrl: string | null;
   googleId: string | null;
 }
-
+  
 export const lucia = new Lucia(adapter, {
   sessionCookie: {
     expires: false,
