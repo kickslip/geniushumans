@@ -66,8 +66,7 @@ export function BookingDialog({ children }: BookingDialogProps) {
               <h3 className="font-medium mb-4">Select a Time</h3>
               <TimeSlotPicker
                 selectedTime={selectedTime}
-                onTimeSelect={setSelectedTime}
-              />
+                onTimeSelect={setSelectedTime} date={date}              />
             </div>
           )}
 
@@ -76,8 +75,7 @@ export function BookingDialog({ children }: BookingDialogProps) {
               <h3 className="font-medium mb-4">Select a Consultant</h3>
               <ConsultantSelector
                 selectedConsultant={selectedConsultant}
-                onConsultantSelect={setSelectedConsultant}
-              />
+                onConsultantSelect={setSelectedConsultant} date={date} time={""}              />
             </div>
           )}
 
