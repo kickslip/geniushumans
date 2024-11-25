@@ -46,6 +46,9 @@ interface DatabaseUserAttributes {
   email: string;
   avatarUrl: string | null;
   googleId: string | null;
+  role:
+  | "USER"
+  | "ADMIN";
 }
 
 export const google = new Google(
@@ -91,3 +94,18 @@ export const validateRequest = cache(
     return result;
   }
 );
+
+
+
+export const hasRole = (
+  user: User,
+  requiredRole: DatabaseUserAttributes["role"]
+) => {
+  const roleHierarchy = [
+    "USER",
+    "ADMIN",
+  ];
+  return (
+    roleHierarchy.indexOf(user.role) >= roleHierarchy.indexOf(requiredRole)
+  );
+};
