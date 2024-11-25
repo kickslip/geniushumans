@@ -1,40 +1,32 @@
 "use client";
 
-import { useState } from 'react';
-import Link from 'next/link';
-import { Button } from '@/components/ui/button';
-import { Code2 } from 'lucide-react';
-import {
-  Sheet,
-  SheetContent,
-  SheetTrigger,
-} from '@/components/ui/sheet';
-import { Menu } from 'lucide-react';
-import Settings from './Settings';
+import { useState } from "react";
+import Link from "next/link";
+import { Button } from "@/components/ui/button";
+import { Code2 } from "lucide-react";
+import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
+import { Menu } from "lucide-react";
+import UserButton from "./UserButton";
 
 const navItems = [
-  { href: 'Home', label: 'Home' },
-  { href: '/log-sign', label: 'Login/Register' },
-  { href: '/book', label: 'Book Now' },
-  { href: '#tech-stack', label: 'Tech Stack' },
-  { href: '#services', label: 'Services' },
-  { href: '#pricing', label: 'Pricing' },
-  { href: '#contact', label: 'Contact Us' },
+  { href: "/", label: "Home" },
+  { href: "/book", label: "Book Now" },
+  { href: "#tech-stack", label: "Tech Stack" },
+  { href: "#services", label: "Services" },
+  { href: "#pricing", label: "Pricing" },
+  { href: "#contact", label: "Contact Us" },
 ];
 
 export function Navigation() {
   const [isOpen, setIsOpen] = useState(false);
+  const isLoggedIn = false; // Example value
 
   return (
     <header className="fixed top-0 w-full bg-background/80 backdrop-blur-sm z-50 border-b">
       <div className="container mx-auto px-4">
         <nav className="flex items-center justify-between h-16">
           <Link href="/" className="flex items-center space-x-2">
-          <img 
-              src="logo.png" 
-              alt="Logo" 
-              className="h-6 w-8"
-            />
+            <img src="logo.png" alt="Logo" className="h-6 w-8" />
             <span className="font-bold text-xl text-red-600">Codeeza</span>
           </Link>
 
@@ -49,6 +41,8 @@ export function Navigation() {
                 {item.label}
               </Link>
             ))}
+            {isLoggedIn ? null : <a href="/log-sign">Login/Register</a>}
+            <UserButton />
           </div>
 
           {/* Mobile Navigation */}
@@ -71,7 +65,7 @@ export function Navigation() {
                   </Link>
                 ))}
               </nav>
-              <Settings/>
+              <UserButton />
             </SheetContent>
           </Sheet>
         </nav>

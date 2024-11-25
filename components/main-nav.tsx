@@ -3,7 +3,6 @@
 import Link from "next/link";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
-import Settings from "./Settings";
 import UserButton from "./UserButton";
 
 const routes = [
