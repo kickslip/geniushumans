@@ -7,6 +7,8 @@ import { Code2 } from "lucide-react";
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
 import { Menu } from "lucide-react";
 import UserButton from "./UserButton";
+import { RxDividerVertical } from "react-icons/rx";
+import { useSession } from "@/app/SessionProvider";
 
 const navItems = [
   { href: "/", label: "Home" },
@@ -18,8 +20,8 @@ const navItems = [
 ];
 
 export function Navigation() {
+  const session = useSession();
   const [isOpen, setIsOpen] = useState(false);
-  const isLoggedIn = false; // Example value
 
   return (
     <header className="fixed top-0 w-full bg-background/80 backdrop-blur-sm z-50 border-b">
@@ -41,8 +43,23 @@ export function Navigation() {
                 {item.label}
               </Link>
             ))}
-            {isLoggedIn ? null : <a href="/log-sign">Login/Register</a>}
-            <UserButton />
+            <div className="hidden md:flex items-center space-x-6">
+              {session?.user ? (
+                <div className="flex items-center space-x-4">
+                  <UserButton className="text-lg" />
+                </div>
+              ) : (
+                <>
+                  <Link href="/login" className="hover:text-gray-300">
+                    Login
+                  </Link>
+                  <RxDividerVertical />
+                  <Link href="/signup" className="hover:text-gray-300">
+                    Register
+                  </Link>
+                </>
+              )}
+            </div>
           </div>
 
           {/* Mobile Navigation */}
