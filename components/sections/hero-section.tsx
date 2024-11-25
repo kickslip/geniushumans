@@ -40,12 +40,12 @@ export function HeroSection() {
           <div className="flex justify-center gap-4">
             <Button asChild className="btn-lg">
               <Link href="#" onClick={handleButtonClick('/book')}>
-                {user && session ? "Book Consultation" : "Login to Book"}
+                {user && session ? "Book Consultation" : "Login to Book Consultation"}
               </Link>
             </Button>
             <Button className={`btn-lg ${isOutline ? 'outline' : ''}`} asChild>
               <Link href="#" onClick={handleButtonClick('/pricing')}>
-                {user && session ? "View Packages" : "Login to View"}
+                {user && session ? "View Packages" : "Login to View Packages"}
               </Link>
             </Button>
           </div>
