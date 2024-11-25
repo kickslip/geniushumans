@@ -1,7 +1,6 @@
-//app/book/page.tsx
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { format } from "date-fns";
 import { Calendar } from "@/components/ui/calendar";
 import { TimeSlotPicker } from "@/components/booking/time-slot-picker";
@@ -11,18 +10,41 @@ import { Separator } from "@/components/ui/separator";
 import { Button } from "@/components/ui/button";
 import { useSession } from "@/app/SessionProvider";
 import { toast } from "sonner";
-import { createBooking } from "@/lib/actions"; // We'll create this server action
+import { createBooking } from "@/lib/actions";
+import { useRouter } from "next/navigation";
+import { Skeleton } from "@/components/ui/skeleton";
 
 export default function BookPage() {
   const { session, user } = useSession();
+  const router = useRouter();
+  const [isLoading, setIsLoading] = useState(true);
   const [date, setDate] = useState<Date | undefined>(undefined);
   const [selectedTime, setSelectedTime] = useState<string | undefined>(undefined);
   const [selectedConsultant, setSelectedConsultant] = useState<string | undefined>(undefined);
   const [isSubmitting, setIsSubmitting] = useState(false);
 
+  // Check session and redirect if not authenticated
+  useEffect(() => {
+    const checkAuth = async () => {
+      try {
+        if (!session || !user) {
+          router.push('/login');
+        } else {
+          setIsLoading(false);
+        }
+      } catch (error) {
+        console.error('Auth check failed:', error);
+        router.push('/login');
+      }
+    };
+
+    checkAuth();
+  }, [session, user, router]);
+
   const handleBooking = async () => {
-    if (!session) {
+    if (!session || !user) {
       toast.error("You must be logged in to book a consultation");
+      router.push('/login');
       return;
     }
 
@@ -34,31 +56,42 @@ export default function BookPage() {
     setIsSubmitting(true);
 
     try {
-      await createBooking({
+      const result = await createBooking({
         userId: user.id,
         date: date.toISOString(),
         time: selectedTime,
         consultant: selectedConsultant
       });
 
-      toast.success("Consultation booked successfully!");
-      
-      // Reset form after successful booking
-      setDate(undefined);
-      setSelectedTime(undefined);
-      setSelectedConsultant(undefined);
+      if (result.success) {
+        toast.success("Consultation booked successfully!");
+        // Reset form
+        setDate(undefined);
+        setSelectedTime(undefined);
+        setSelectedConsultant(undefined);
+      } else {
+        toast.error(result.error?.message || "Failed to book consultation");
+      }
     } catch (error) {
+      console.error('Booking creation failed:', error);
       toast.error("Failed to book consultation. Please try again.");
-      console.error(error);
     } finally {
       setIsSubmitting(false);
     }
   };
 
-  if (!session) {
+  // Show loading state
+  if (isLoading) {
     return (
-      <main className="container mx-auto py-10 px-4 text-center">
-        <h1 className="text-2xl font-bold mb-4">Please log in to book a consultation</h1>
+      <main className="container mx-auto py-10 px-4">
+        <Skeleton className="h-12 w-64 mb-8" />
+        <div className="grid md:grid-cols-[300px,1fr] gap-8">
+          <Skeleton className="h-[350px]" />
+          <div className="space-y-8">
+            <Skeleton className="h-[200px]" />
+            <Skeleton className="h-[200px]" />
+          </div>
+        </div>
       </main>
     );
   }
@@ -73,7 +106,15 @@ export default function BookPage() {
             selected={date}
             onSelect={setDate}
             className="rounded-md"
-            disabled={(date) => date < new Date() || date.getDay() === 0 || date.getDay() === 6}
+            disabled={(date) => {
+              const today = new Date();
+              today.setHours(0, 0, 0, 0);
+              return (
+                date < today || 
+                date.getDay() === 0 || 
+                date.getDay() === 6
+              );
+            }}
           />
         </Card>
 
@@ -87,6 +128,7 @@ export default function BookPage() {
                 <TimeSlotPicker
                   selectedTime={selectedTime}
                   onTimeSelect={setSelectedTime}
+                  date={date}
                 />
               </div>
               <Separator />
@@ -100,6 +142,8 @@ export default function BookPage() {
                 <ConsultantSelector
                   selectedConsultant={selectedConsultant}
                   onConsultantSelect={setSelectedConsultant}
+                  date={date}
+                  time={selectedTime}
                 />
               </div>
               <Separator />
