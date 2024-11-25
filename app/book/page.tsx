@@ -126,10 +126,11 @@ export default function BookPage() {
                   Available Times for {format(date, "MMMM do, yyyy")}
                 </h2>
                 <TimeSlotPicker
-                  selectedTime={selectedTime}
-                  onTimeSelect={setSelectedTime}
-                  date={date}
-                />
+  selectedTime={selectedTime}
+  onTimeSelect={setSelectedTime}
+  date={date}
+  consultant={selectedConsultant} // Pass this when you want to show slots for a specific consultant
+/>
               </div>
               <Separator />
             </>
@@ -139,12 +140,14 @@ export default function BookPage() {
             <>
               <div>
                 <h2 className="text-xl font-semibold mb-4">Select a Consultant</h2>
-                <ConsultantSelector
-                  selectedConsultant={selectedConsultant}
-                  onConsultantSelect={setSelectedConsultant}
-                  date={date}
-                  time={selectedTime}
-                />
+                
+
+<ConsultantSelector
+  selectedConsultant={selectedConsultant}
+  onConsultantSelect={setSelectedConsultant}
+  date={date}
+  time={selectedTime}
+/>
               </div>
               <Separator />
             </>
