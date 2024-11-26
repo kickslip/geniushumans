@@ -54,7 +54,7 @@ export function Navigation() {
                     Login
                   </Link>
                   <RxDividerVertical />
-                  <Link href="/signup" className="hover:text-gray-300">
+                  <Link href="/log-sign" className="hover:text-gray-300">
                     Register
                   </Link>
                 </>
@@ -81,8 +81,8 @@ export function Navigation() {
                     {item.label}
                   </Link>
                 ))}
+                <UserButton />
               </nav>
-              <UserButton />
             </SheetContent>
           </Sheet>
         </nav>

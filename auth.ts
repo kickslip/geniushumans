@@ -13,6 +13,9 @@ interface DatabaseUserAttributes {
   email: string;
   avatarUrl: string | null;
   googleId: string | null;
+  role:
+    | "USER"
+    | "ADMIN";
 }
   
 export const lucia = new Lucia(adapter, {
@@ -29,6 +32,7 @@ export const lucia = new Lucia(adapter, {
       email: databaseUserAttributes.email,
       avatarUrl: databaseUserAttributes.avatarUrl,
       googleId: databaseUserAttributes.googleId,
+      role: databaseUserAttributes.role,
     };
   },
 });

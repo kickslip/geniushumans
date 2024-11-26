@@ -23,6 +23,12 @@ export const signUpSchema = z.object({
     "Only letters, numbers, - and _ allowed"
   ),
   password: requiredString.min(8, "Must be at least 8 characters"),
+  role: z
+    .enum([
+      "USER",
+      "ADMIN",
+    ])
+    .default("USER"),
 });
 
 export type SignUpValues = z.infer<typeof signUpSchema>;

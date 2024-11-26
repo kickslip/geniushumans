@@ -19,8 +19,12 @@ export default function BookPage() {
   const router = useRouter();
   const [isLoading, setIsLoading] = useState(true);
   const [date, setDate] = useState<Date | undefined>(undefined);
-  const [selectedTime, setSelectedTime] = useState<string | undefined>(undefined);
-  const [selectedConsultant, setSelectedConsultant] = useState<string | undefined>(undefined);
+  const [selectedTime, setSelectedTime] = useState<string | undefined>(
+    undefined
+  );
+  const [selectedConsultant, setSelectedConsultant] = useState<
+    string | undefined
+  >(undefined);
   const [isSubmitting, setIsSubmitting] = useState(false);
 
   // Check session and redirect if not authenticated
@@ -28,13 +32,13 @@ export default function BookPage() {
     const checkAuth = async () => {
       try {
         if (!session || !user) {
-          router.push('/login');
+          router.push("/login");
         } else {
           setIsLoading(false);
         }
       } catch (error) {
-        console.error('Auth check failed:', error);
-        router.push('/login');
+        console.error("Auth check failed:", error);
+        router.push("/login");
       }
     };
 
@@ -44,7 +48,7 @@ export default function BookPage() {
   const handleBooking = async () => {
     if (!session || !user) {
       toast.error("You must be logged in to book a consultation");
-      router.push('/login');
+      router.push("/login");
       return;
     }
 
@@ -60,7 +64,7 @@ export default function BookPage() {
         userId: user.id,
         date: date.toISOString(),
         time: selectedTime,
-        consultant: selectedConsultant
+        consultant: selectedConsultant,
       });
 
       if (result.success) {
@@ -73,7 +77,7 @@ export default function BookPage() {
         toast.error(result.error?.message || "Failed to book consultation");
       }
     } catch (error) {
-      console.error('Booking creation failed:', error);
+      console.error("Booking creation failed:", error);
       toast.error("Failed to book consultation. Please try again.");
     } finally {
       setIsSubmitting(false);
@@ -109,11 +113,7 @@ export default function BookPage() {
             disabled={(date) => {
               const today = new Date();
               today.setHours(0, 0, 0, 0);
-              return (
-                date < today || 
-                date.getDay() === 0 || 
-                date.getDay() === 6
-              );
+              return date < today || date.getDay() === 0 || date.getDay() === 6;
             }}
           />
         </Card>
@@ -126,11 +126,11 @@ export default function BookPage() {
                   Available Times for {format(date, "MMMM do, yyyy")}
                 </h2>
                 <TimeSlotPicker
-  selectedTime={selectedTime}
-  onTimeSelect={setSelectedTime}
-  date={date}
-  consultant={selectedConsultant} // Pass this when you want to show slots for a specific consultant
-/>
+                  selectedTime={selectedTime}
+                  onTimeSelect={setSelectedTime}
+                  date={date}
+                  consultant={selectedConsultant} // Pass this when you want to show slots for a specific consultant
+                />
               </div>
               <Separator />
             </>
@@ -139,15 +139,16 @@ export default function BookPage() {
           {date && selectedTime && (
             <>
               <div>
-                <h2 className="text-xl font-semibold mb-4">Select a Consultant</h2>
-                
+                <h2 className="text-xl font-semibold mb-4">
+                  Select a Consultant
+                </h2>
 
-<ConsultantSelector
-  selectedConsultant={selectedConsultant}
-  onConsultantSelect={setSelectedConsultant}
-  date={date}
-  time={selectedTime}
-/>
+                <ConsultantSelector
+                  selectedConsultant={selectedConsultant}
+                  onConsultantSelect={setSelectedConsultant}
+                  date={date}
+                  time={selectedTime}
+                />
               </div>
               <Separator />
             </>
@@ -155,8 +156,8 @@ export default function BookPage() {
 
           {date && selectedTime && selectedConsultant && (
             <div>
-              <Button 
-                onClick={handleBooking} 
+              <Button
+                onClick={handleBooking}
                 disabled={isSubmitting}
                 className="w-full"
               >

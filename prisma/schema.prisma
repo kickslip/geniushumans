@@ -15,16 +15,19 @@ enum UserRole {
 }
 
 model User {
-  id           String    @id @default(uuid())
-  username     String    @unique
-  email        String    @unique
-  passwordHash String
-  phoneNumber  String
-  role         UserRole  @default(USER)
-  createdAt    DateTime  @default(now())
-  updatedAt    DateTime  @updatedAt
-  Session      Session[]
-  Booking      Booking[]
+  id               String    @id @default(uuid())
+  username         String    @unique
+  email            String    @unique
+  passwordHash     String
+  phoneNumber      String
+  wpId             String?   @unique
+  resetToken       String?
+  resetTokenExpiry DateTime?
+  role             UserRole  @default(USER)
+  createdAt        DateTime  @default(now())
+  updatedAt        DateTime  @updatedAt
+  Session          Session[]
+  Booking          Booking[]
 
   @@map("users")
 }
