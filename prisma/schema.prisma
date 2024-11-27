@@ -18,6 +18,8 @@ model User {
   id               String    @id @default(uuid())
   username         String    @unique
   email            String    @unique
+  company          String?
+  message          String?
   passwordHash     String
   phoneNumber      String
   wpId             String?   @unique

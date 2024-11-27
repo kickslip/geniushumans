@@ -1,11 +1,15 @@
 "use client";
-
 import { useState } from "react";
 import UserButton from "./UserButton";
 import Sidebar from "./Sidebar";
 import React from "react";
+import { Session } from "next-auth";
 
-export default function Navbar() {
+interface NavbarProps {
+  session: Session;
+}
+
+export default function Navbar({ session }: NavbarProps) {
   const [sidebarOpen, setSidebarOpen] = useState(false);
 
   return (
@@ -35,6 +39,11 @@ export default function Navbar() {
           white-space: nowrap;
           margin-right: 1rem;
         }
+        .user-info {
+          display: flex;
+          align-items: center;
+          gap: 1rem;
+        }
         .user-button-wrapper {
           flex-shrink: 0;
         }
@@ -63,8 +72,11 @@ export default function Navbar() {
             </button>
             <div className="navbar-title">ADMIN DASHBOARD</div>
           </div>
-          <div className="user-button-wrapper">
-            <UserButton />
+          <div className="user-info">
+            <span>{session.user.email}</span>
+            <div className="user-button-wrapper">
+              <UserButton />
+            </div>
           </div>
         </div>
       </header>

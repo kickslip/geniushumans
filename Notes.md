@@ -1,3 +1,11 @@
+            company: 'N/A' // You might want to add company to your user model
+
+          message: '' // Add message if you have it in your model
+
+________________________________________________________
+
+
+
 Incorporate Project Management- KANBAN board  *********
 Changes>>>>>
 
