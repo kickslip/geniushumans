@@ -57,3 +57,64 @@
     @apply bg-background text-foreground;
   }
 }
+
+@layer components {
+  /* Day Picker Custom Styles */
+  .rdp {
+    --rdp-accent-color: hsl(var(--primary));
+    --rdp-background-color: hsl(var(--secondary));
+    @apply text-sm;
+  }
+
+  .rdp-month {
+    @apply space-y-4;
+  }
+
+  .rdp-caption {
+    @apply flex justify-center items-center relative;
+  }
+
+  .rdp-caption_label {
+    @apply text-sm font-medium;
+  }
+
+  .rdp-nav {
+    @apply absolute right-1 flex items-center space-x-1;
+  }
+
+  .rdp-nav_button {
+    @apply h-7 w-7 bg-transparent hover:bg-secondary/50 rounded-md flex items-center justify-center;
+  }
+
+  .rdp-table {
+    @apply w-full border-collapse;
+  }
+
+  .rdp-head_row {
+    @apply flex;
+  }
+
+  .rdp-head_cell {
+    @apply text-xs text-muted-foreground font-normal w-9 text-center;
+  }
+
+  .rdp-row {
+    @apply flex;
+  }
+
+  .rdp-day {
+    @apply h-9 w-9 p-0 font-normal aria-selected:opacity-100 hover:bg-accent rounded-md flex items-center justify-center;
+  }
+
+  .rdp-day_selected {
+    @apply bg-primary text-primary-foreground hover:bg-primary focus:bg-primary;
+  }
+
+  .rdp-day_disabled {
+    @apply text-muted-foreground cursor-not-allowed opacity-50;
+  }
+
+  .rdp-day_outside {
+    @apply text-muted-foreground opacity-50;
+  }
+}

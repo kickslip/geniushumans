@@ -13,8 +13,11 @@ interface DatabaseUserAttributes {
   email: string;
   avatarUrl: string | null;
   googleId: string | null;
+  role:
+    | "USER"
+    | "ADMIN";
 }
-
+  
 export const lucia = new Lucia(adapter, {
   sessionCookie: {
     expires: false,
@@ -29,6 +32,7 @@ export const lucia = new Lucia(adapter, {
       email: databaseUserAttributes.email,
       avatarUrl: databaseUserAttributes.avatarUrl,
       googleId: databaseUserAttributes.googleId,
+      role: databaseUserAttributes.role,
     };
   },
 });
@@ -46,6 +50,9 @@ interface DatabaseUserAttributes {
   email: string;
   avatarUrl: string | null;
   googleId: string | null;
+  role:
+  | "USER"
+  | "ADMIN";
 }
 
 export const google = new Google(
@@ -87,7 +94,22 @@ export const validateRequest = cache(
         );
       }
     } catch {}
-
+    
     return result;
   }
 );
+
+
+
+export const hasRole = (
+  user: User,
+  requiredRole: DatabaseUserAttributes["role"]
+) => {
+  const roleHierarchy = [
+    "USER",
+    "ADMIN",
+  ];
+  return (
+    roleHierarchy.indexOf(user.role) >= roleHierarchy.indexOf(requiredRole)
+  );
+};

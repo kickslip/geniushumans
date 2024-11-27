@@ -1,28 +1,26 @@
 "use client";
 
-import { useState } from 'react';
-import Link from 'next/link';
-import { Button } from '@/components/ui/button';
-import { Code2 } from 'lucide-react';
-import {
-  Sheet,
-  SheetContent,
-  SheetTrigger,
-} from '@/components/ui/sheet';
-import { Menu } from 'lucide-react';
-import Settings from './Settings';
+import { useState } from "react";
+import Link from "next/link";
+import { Button } from "@/components/ui/button";
+import { Code2 } from "lucide-react";
+import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
+import { Menu } from "lucide-react";
+import UserButton from "./UserButton";
+import { RxDividerVertical } from "react-icons/rx";
+import { useSession } from "@/app/SessionProvider";
 
 const navItems = [
-  { href: 'Home', label: 'Home' },
-  { href: '/log-sign', label: 'Login/Register' },
-  { href: '/book', label: 'Book Now' },
-  { href: '#tech-stack', label: 'Tech Stack' },
-  { href: '#services', label: 'Services' },
-  { href: '#pricing', label: 'Pricing' },
-  { href: '#contact', label: 'Contact Us' },
+  { href: "/", label: "Home" },
+  { href: "/book", label: "Book Now" },
+  { href: "#tech-stack", label: "Tech Stack" },
+  { href: "#services", label: "Services" },
+  { href: "#pricing", label: "Pricing" },
+  { href: "#contact", label: "Contact Us" },
 ];
 
 export function Navigation() {
+  const session = useSession();
   const [isOpen, setIsOpen] = useState(false);
 
   return (
@@ -30,11 +28,7 @@ export function Navigation() {
       <div className="container mx-auto px-4">
         <nav className="flex items-center justify-between h-16">
           <Link href="/" className="flex items-center space-x-2">
-          <img 
-              src="logo.png" 
-              alt="Logo" 
-              className="h-6 w-8"
-            />
+            <img src="logo.png" alt="Logo" className="h-6 w-8" />
             <span className="font-bold text-xl text-red-600">Codeeza</span>
           </Link>
 
@@ -49,6 +43,23 @@ export function Navigation() {
                 {item.label}
               </Link>
             ))}
+            <div className="hidden md:flex items-center space-x-6">
+              {session?.user ? (
+                <div className="flex items-center space-x-4">
+                  <UserButton className="text-lg" />
+                </div>
+              ) : (
+                <>
+                  <Link href="/login" className="hover:text-gray-300">
+                    Login
+                  </Link>
+                  <RxDividerVertical />
+                  <Link href="/log-sign" className="hover:text-gray-300">
+                    Register
+                  </Link>
+                </>
+              )}
+            </div>
           </div>
 
           {/* Mobile Navigation */}
@@ -70,8 +81,8 @@ export function Navigation() {
                     {item.label}
                   </Link>
                 ))}
+                <UserButton />
               </nav>
-              <Settings/>
             </SheetContent>
           </Sheet>
         </nav>

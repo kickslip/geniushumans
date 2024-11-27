@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { format } from "date-fns";
 import { Calendar } from "@/components/ui/calendar";
 import { TimeSlotPicker } from "@/components/booking/time-slot-picker";
 import { ConsultantSelector } from "@/components/booking/consultant-selector";
@@ -27,9 +28,22 @@ export function BookingDialog({ children }: BookingDialogProps) {
 
   const handleClose = () => {
     setOpen(false);
+    resetSelection();
+  };
+
+  const resetSelection = () => {
     setDate(undefined);
     setSelectedTime(undefined);
     setSelectedConsultant(undefined);
+  };
+
+  const disabledDays = (date: Date) => {
+    const today = new Date();
+    return (
+      date < today || 
+      date.getDay() === 0 || // Disable Sundays
+      date.getDay() === 6    // Disable Saturdays
+    );
   };
 
   return (
@@ -55,9 +69,17 @@ export function BookingDialog({ children }: BookingDialogProps) {
             <Calendar
               mode="single"
               selected={date}
-              onSelect={setDate}
+              onSelect={(selectedDate) => {
+                // Ensure the selected date is valid and not disabled
+                if (selectedDate && !disabledDays(selectedDate)) {
+                  setDate(selectedDate);
+                  // Reset dependent selections when date changes
+                  setSelectedTime(undefined);
+                  setSelectedConsultant(undefined);
+                }
+              }}
+              disabled={disabledDays}
               className="rounded-md mx-auto"
-              disabled={(date) => date < new Date() || date.getDay() === 0 || date.getDay() === 6}
             />
           </div>
 
@@ -67,6 +89,7 @@ export function BookingDialog({ children }: BookingDialogProps) {
               <TimeSlotPicker
                 selectedTime={selectedTime}
                 onTimeSelect={setSelectedTime}
+                date={date}
               />
             </div>
           )}
@@ -77,6 +100,8 @@ export function BookingDialog({ children }: BookingDialogProps) {
               <ConsultantSelector
                 selectedConsultant={selectedConsultant}
                 onConsultantSelect={setSelectedConsultant}
+                date={date}
+                time={selectedTime}
               />
             </div>
           )}
@@ -86,6 +111,7 @@ export function BookingDialog({ children }: BookingDialogProps) {
               date={date}
               time={selectedTime}
               consultant={selectedConsultant}
+              onSuccess={handleClose}
             />
           )}
         </div>

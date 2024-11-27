@@ -4,17 +4,19 @@ import { motion } from "framer-motion";
 import { Button } from "@/components/ui/button";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { useAuth } from "@/app/(auth)/AuthContext";
+import { useSession } from "@/app/SessionProvider";
 
 const isOutline = false;
 
 export function HeroSection() {
-  const { isLoggedIn } = useAuth();
+  const { user, session } = useSession();
   const router = useRouter();
 
-  const handleProtectedClick = (e: React.MouseEvent) => {
-    if (!isLoggedIn) {
-      e.preventDefault();
+  const handleButtonClick = (destination: string) => (e: React.MouseEvent) => {
+    e.preventDefault();
+    if (user && session) {
+      router.push(destination);
+    } else {
       router.push('/login');
     }
   };
@@ -32,17 +34,18 @@ export function HeroSection() {
             Codeeza Expert Full Stack Development Teams
           </h1>
           <p className="text-xl text-muted-foreground mb-8">
-            Transform your digital vision with our dedicated development teams specializing in modern web technologies
+            Transform your digital vision with our dedicated development teams 
+            specializing in modern web technologies
           </p>
           <div className="flex justify-center gap-4">
             <Button asChild className="btn-lg">
-              <Link href="/book" onClick={handleProtectedClick}>
-                {isLoggedIn ? "Book Consultation" : "Login to Book"}
+              <Link href="#" onClick={handleButtonClick('/book')}>
+                {user && session ? "Book Consultation" : "Login to Book Consultation"}
               </Link>
             </Button>
             <Button className={`btn-lg ${isOutline ? 'outline' : ''}`} asChild>
-              <Link href="#pricing" onClick={handleProtectedClick}>
-                {isLoggedIn ? "View Packages" : "Login to View"}
+              <Link href="#" onClick={handleButtonClick('/pricing')}>
+                {user && session ? "View Packages" : "Login to View Packages"}
               </Link>
             </Button>
           </div>

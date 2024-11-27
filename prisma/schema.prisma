@@ -9,25 +9,34 @@ datasource db {
   directUrl = env("POSTGRES_URL_NON_POOLING")
 }
 
+enum UserRole {
+  USER
+  ADMIN
+}
+
 model User {
-  id           String    @id @default(uuid())
-  username     String    @unique
-  email        String    @unique
-  passwordHash String
-  phoneNumber  String
-  createdAt    DateTime @default(now())
-  updatedAt    DateTime @updatedAt
-  Session      Session[]
-  Booking      Booking[]
+  id               String    @id @default(uuid())
+  username         String    @unique
+  email            String    @unique
+  passwordHash     String
+  phoneNumber      String
+  wpId             String?   @unique
+  resetToken       String?
+  resetTokenExpiry DateTime?
+  role             UserRole  @default(USER)
+  createdAt        DateTime  @default(now())
+  updatedAt        DateTime  @updatedAt
+  Session          Session[]
+  Booking          Booking[]
 
   @@map("users")
 }
 
 model Session {
-  id           String   @id @default(cuid())
-  userId       String
-  expiresAt    DateTime
-  user         User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  id        String   @id @default(cuid())
+  userId    String
+  expiresAt DateTime
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@map("sessions")
 }
