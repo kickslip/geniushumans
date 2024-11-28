@@ -124,21 +124,6 @@ const RegistrationForm = () => {
             )}
           />
 
-          <FormField
-            control={form.control}
-            name="username"
-            render={({ field }) => (
-              <FormItem className="flex flex-row items-start space-x-3 space-y-0 rounded-md border p-4">
-                <FormControl>
-                  <Checkbox checked={check.state} onCheckedChange={field.onChange} />
-                </FormControl>
-                <div className="space-y-1 leading-none">
-                  <FormLabel>I agree to the Terms & Conditions</FormLabel>
-                </div>
-              </FormItem>
-            )}
-          />
-
           <Button type="submit" disabled={form.formState.isSubmitting}>
             {form.formState.isSubmitting ? "Registering..." : "Register"}
           </Button>
