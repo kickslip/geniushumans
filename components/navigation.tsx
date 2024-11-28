@@ -2,13 +2,13 @@
 
 import { useState } from "react";
 import Link from "next/link";
-import { Button } from "@/components/ui/button";
 import { Code2 } from "lucide-react";
-import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
 import { Menu } from "lucide-react";
 import UserButton from "./UserButton";
 import { RxDividerVertical } from "react-icons/rx";
-import { useSession } from "@/app/SessionProvider";
+import { Button } from "./ui/button";
+import { Sheet, SheetContent, SheetTrigger } from "./ui/sheet";
+import { useSession } from "../app/SessionProvider";
 
 const navItems = [
   { href: "/", label: "Home" },

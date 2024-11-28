@@ -3,10 +3,10 @@
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuLabel, DropdownMenuPortal, DropdownMenuSeparator, DropdownMenuSub, DropdownMenuSubContent, DropdownMenuSubTrigger, DropdownMenuTrigger } from "./ui/dropdown-menu"
 import Link from "next/link"
 import { Check, LogOutIcon, Monitor, Moon, Settings, Sun, UserIcon } from "lucide-react"
-import { logout } from "@/app/(auth)/actions"
-import { cn } from "@/lib/utils"
 import { useTheme } from "next-themes"
-import { useSession } from "@/app/SessionProvider"
+import { logout } from "../app/(auth)/actions"
+import { useSession } from "../app/SessionProvider"
+import { cn } from "../lib/utils"
 
 interface UserButtonProps {
     className?: string
