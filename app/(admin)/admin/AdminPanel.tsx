@@ -14,6 +14,7 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Toaster } from 'sonner';
+import Sidebar from '../_components/Sidebar';
 
 interface BookingDetails {
   id: string;
