@@ -32,7 +32,7 @@ type Section = {
 
 interface SidebarProps {
   className?: string;
-  session: Session; 
+  session: Session | undefined; 
   onClose?: () => void;
 }
 
