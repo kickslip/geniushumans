@@ -32,6 +32,7 @@ type Section = {
 
 interface SidebarProps {
   className?: string;
+  user?: string;
   session: Session | undefined; // Ensure the type matches expected input
   onClose?: () => void;
 }
