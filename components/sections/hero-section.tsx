@@ -44,7 +44,7 @@ export function HeroSection() {
               </Link>
             </Button>
             <Button className={`btn-lg ${isOutline ? 'outline' : ''}`} asChild>
-              <Link href="#" onClick={handleButtonClick('/pricing')}>
+              <Link href="/#pricing" onClick={handleButtonClick('/#pricing')}>
                 {user && session ? "View Packages" : "Login to View Packages"}
               </Link>
             </Button>
