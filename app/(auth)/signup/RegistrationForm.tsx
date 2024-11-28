@@ -116,7 +116,7 @@ const RegistrationForm = () => {
                     type="text"
                     className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-300 focus:ring focus:ring-indigo-200 focus:ring-opacity-50"
                     {...field}
-                    onChange={e => field.onChange(e.target.value)}
+                    onChange={(e) => field.onChange(e.target.value)}
                   />
                 </FormControl>
                 <FormMessage />
@@ -130,10 +130,7 @@ const RegistrationForm = () => {
             render={({ field }) => (
               <FormItem className="flex flex-row items-start space-x-3 space-y-0 rounded-md border p-4">
                 <FormControl>
-                  <Checkbox
-                    checked={CheckedState}
-                    onCheckedChange={field.onChange}
-                  />
+                  <Checkbox checked={check.state} onCheckedChange={field.onChange} />
                 </FormControl>
                 <div className="space-y-1 leading-none">
                   <FormLabel>I agree to the Terms & Conditions</FormLabel>
