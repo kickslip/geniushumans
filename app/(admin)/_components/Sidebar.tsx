@@ -4,16 +4,16 @@ import React, { useState, useEffect, useMemo } from "react";
 import { usePathname, useRouter } from "next/navigation";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
-import { 
-  LayoutDashboard, 
-  Users, 
-  ShoppingBag, 
-  Shirt, 
-  Sun, 
-  Package, 
+import {
+  LayoutDashboard,
+  Users,
+  ShoppingBag,
+  Shirt,
+  Sun,
+  Package,
   PlusCircle,
   ChevronDown,
-  LucideIcon
+  LucideIcon,
 } from "lucide-react";
 import { Session } from "lucia";
 
@@ -32,93 +32,65 @@ type Section = {
 
 interface SidebarProps {
   className?: string;
-  session: Session | undefined; 
+  session: Session | undefined; // Ensure the type matches expected input
   onClose?: () => void;
 }
 
-const Sidebar: React.FC<SidebarProps> = ({ className, onClose }) => {
+const Sidebar: React.FC<SidebarProps> = ({ className, session, onClose }) => {
   const pathname = usePathname();
   const router = useRouter();
   const [openSections, setOpenSections] = useState<string[]>([]);
   const [activeItems, setActiveItems] = useState<string[]>([]);
 
-  const navItems: Section[] = useMemo(() => [
-    {
-      section: "USERS",
-      items: [
-        { href: "/admin/update/user-role", icon: Users, label: "Update Roles", color: "#4CAF50" },
-      ],
-    },
-    {
-      section: "PRODUCTS",
-      items: [
-        { href: "/admin/products/create", icon: PlusCircle, label: "Create", color: "#4CAF50" },
-        {
-          href: "/admin/products",
-          icon: ShoppingBag,
-          label: "Products",
-          color: "#2196F3",
-          subItems: [
-            {
-              href: "/headwear",
-              icon: Sun,
-              label: "Headwear",
-              color: "#FF9800",
-              subItems: [
-                { href: "/leisure-collection", icon: Package, label: "Leisure", color: "#9C27B0" },
-                { href: "/industrial-collection", icon: Package, label: "Industrial", color: "#795548" },
-                { href: "/signature-collection", icon: Package, label: "Signature", color: "#607D8B" },
-                { href: "/baseball-collection", icon: Package, label: "Baseball", color: "#F44336" },
-                { href: "/fashion-collection", icon: Package, label: "Fashion", color: "#E91E63" },
-                { href: "/sport-collection", icon: Package, label: "Sport", color: "#00BCD4" },
-                { href: "/multi-functional-collection", icon: Package, label: "Multi-Functional", color: "#8BC34A" },
-                { href: "/new-in-headwear-collection", icon: Package, label: "New", color: "#FFEB3B" },
-                { href: "/african-collection", icon: Package, label: "African", color: "#FF5722" },
-              ],
-            },
-            {
-              href: "/apparel",
-              icon: Shirt,
-              label: "Apparel",
-              color: "#3F51B5",
-              subItems: [
-                { href: "/new-in-apparel-collection", icon: Package, label: "New", color: "#FFEB3B" },
-                { href: "/men-collection", icon: Package, label: "Men", color: "#2196F3" },
-                { href: "/woman-collection", icon: Package, label: "Women", color: "#E91E63" },
-                { href: "/kids-collection", icon: Package, label: "Kids", color: "#4CAF50" },
-                { href: "/t-shirts-collection", icon: Package, label: "T-Shirts", color: "#9C27B0" },
-                { href: "/golfers-collection", icon: Package, label: "Golfers", color: "#795548" },
-                { href: "/hoodies-collection", icon: Package, label: "Hoodies", color: "#607D8B" },
-                { href: "/jackets-collection", icon: Package, label: "Jackets", color: "#F44336" },
-                { href: "/bottoms-collection", icon: Package, label: "Bottoms", color: "#00BCD4" },
-              ],
-            },
-            {
-              href: "/all-collections",
-              icon: Package,
-              label: "All Collections",
-              color: "#673AB7",
-              subItems: [
-                { href: "/signature", icon: Package, label: "Signature", color: "#607D8B" },
-                { href: "/baseball", icon: Package, label: "Baseball", color: "#F44336" },
-                { href: "/fashion", icon: Package, label: "Fashion", color: "#E91E63" },
-                { href: "/leisure", icon: Package, label: "Leisure", color: "#9C27B0" },
-                { href: "/sport", icon: Package, label: "Sport", color: "#00BCD4" },
-                { href: "/industrial", icon: Package, label: "Industrial", color: "#795548" },
-                { href: "/camo", icon: Package, label: "Camo", color: "#4CAF50" },
-                { href: "/summer", icon: Package, label: "Summer", color: "#FF9800" },
-                { href: "/winter", icon: Package, label: "Winter", color: "#2196F3" },
-                { href: "/kids", icon: Package, label: "Kids", color: "#4CAF50" },
-                { href: "/african", icon: Package, label: "African", color: "#FF5722" },
-              ],
-            },
-          ],
-        },
-        
-      ],
-    },
-  ], []);
+  // Define navigation items
+  const navItems: Section[] = useMemo(
+    () => [
+      {
+        section: "USERS",
+        items: [
+          { href: "/admin/update/user-role", icon: Users, label: "Update Roles", color: "#4CAF50" },
+        ],
+      },
+      {
+        section: "PRODUCTS",
+        items: [
+          { href: "/admin/products/create", icon: PlusCircle, label: "Create", color: "#4CAF50" },
+          {
+            href: "/admin/products",
+            icon: ShoppingBag,
+            label: "Products",
+            color: "#2196F3",
+            subItems: [
+              {
+                href: "/headwear",
+                icon: Sun,
+                label: "Headwear",
+                color: "#FF9800",
+                subItems: [
+                  { href: "/leisure-collection", icon: Package, label: "Leisure", color: "#9C27B0" },
+                  { href: "/industrial-collection", icon: Package, label: "Industrial", color: "#795548" },
+                  { href: "/signature-collection", icon: Package, label: "Signature", color: "#607D8B" },
+                ],
+              },
+              {
+                href: "/apparel",
+                icon: Shirt,
+                label: "Apparel",
+                color: "#3F51B5",
+                subItems: [
+                  { href: "/new-in-apparel-collection", icon: Package, label: "New", color: "#FFEB3B" },
+                  { href: "/men-collection", icon: Package, label: "Men", color: "#2196F3" },
+                ],
+              },
+            ],
+          },
+        ],
+      },
+    ],
+    []
+  );
 
+  // Update active and open sections based on pathname
   useEffect(() => {
     const updateActiveItems = (items: NavItem[], parentPath: string = "") => {
       items.forEach((item) => {
@@ -229,17 +201,4 @@ const Sidebar: React.FC<SidebarProps> = ({ className, onClose }) => {
       <nav className="flex-grow space-y-4">
         {navItems.map((section) => (
           <div key={section.section} className="space-y-2">
-            <h3 className="text-sm font-semibold uppercase text-muted-foreground">
-              {section.section}
-            </h3>
-            <div className="space-y-1">
-              {section.items.map((item) => renderNavItem(item))}
-            </div>
-          </div>
-        ))}
-      </nav>
-    </aside>
-  );
-};
-
-export default Sidebar;
+    

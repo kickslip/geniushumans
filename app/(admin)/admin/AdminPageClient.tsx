@@ -1,16 +1,14 @@
-
-// app/admin/AdminPageClient.tsx
 'use client';
 
-import React, { useState } from 'react';
+import React from 'react';
 import { User, Session } from 'lucia';
-import AdminPanel from "./AdminPanel";
-import Sidebar from "../_components/Sidebar";
+import AdminPanel from './AdminPanel';
+import Sidebar from '../_components/Sidebar';
 import { useSession } from '@/app/SessionProvider';
 
 export default function AdminPageClient({
   initialUser,
-  initialSession
+  initialSession,
 }: {
   initialUser: User | null;
   initialSession: Session | null;
@@ -21,7 +19,11 @@ export default function AdminPageClient({
   return (
     <div>
       <AdminPanel />
-      <Sidebar session={session ?? initialSession} user={user ?? initialUser} />
+      {/* Ensure fallback aligns with expected types */}
+      <Sidebar 
+        session={session ?? initialSession ?? undefined} 
+        user={user ?? initialUser ?? undefined} 
+      />
     </div>
   );
 }
