@@ -201,4 +201,17 @@ const Sidebar: React.FC<SidebarProps> = ({ className, session, onClose }) => {
       <nav className="flex-grow space-y-4">
         {navItems.map((section) => (
           <div key={section.section} className="space-y-2">
-    
+            <h3 className="text-sm font-semibold uppercase text-muted-foreground">
+              {section.section}
+            </h3>
+            <div className="space-y-1">
+              {section.items.map((item) => renderNavItem(item))}
+            </div>
+          </div>
+        ))}
+      </nav>
+    </aside>
+  );
+};
+
+export default Sidebar;

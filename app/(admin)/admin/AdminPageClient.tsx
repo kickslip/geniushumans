@@ -3,8 +3,8 @@
 import React from 'react';
 import { User, Session } from 'lucia';
 import AdminPanel from './AdminPanel';
-import Sidebar from '../_components/Sidebar';
 import { useSession } from '@/app/SessionProvider';
+import Sidebar from '../_components/Sidebar';
 
 export default function AdminPageClient({
   initialUser,
