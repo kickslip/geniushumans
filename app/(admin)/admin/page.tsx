@@ -1,8 +1,15 @@
-import React from "react";
-import AdminPanel from "./AdminPanel";
+// app/admin/page.tsx
+import { validateRequest } from '@/auth';
+import { redirect } from 'next/navigation';
+import AdminPageClient from './AdminPageClient';
 
-const Page = () => {
-  return <div><AdminPanel/></div>;
-};
+export default async function AdminPage() {
+  const { user, session } = await validateRequest();
 
-export default Page;
+  // Redirect if not authenticated or not an admin
+  if (!session || !user || user.role !== 'ADMIN') {
+    redirect('/login');
+  }
+
+  return <AdminPageClient initialUser={user} initialSession={session} />;
+}
