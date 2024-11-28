@@ -13,14 +13,6 @@ const nextConfig = {
       type: 'webassembly/async',
     })
 
-    // Ignore Prisma schema files in client-side compilation
-    if (!isServer) {
-      config.resolve.alias = {
-        ...config.resolve.alias,
-        '@prisma/client$': 'noop2',
-      }
-    }
-
     // Externalize argon2 on the server
     if (isServer) {
       config.externals = [...(config.externals || []), '@node-rs/argon2'];

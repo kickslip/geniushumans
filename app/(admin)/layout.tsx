@@ -1,9 +1,8 @@
-import { redirect } from "next/navigation";
-import Navbar from "./_components/Navbar";
-import Sidebar from "./_components/Sidebar";
 import { validateRequest } from "@/auth";
+import { redirect } from "next/navigation";
+import SessionProvider from "./SessionProvider";
 
-export default async function Layout({
+export default async function AdminLayout({
   children,
 }: {
   children: React.ReactNode;
@@ -21,15 +20,8 @@ export default async function Layout({
   }
 
   return (
-    <div className="flex min-h-screen flex-col">
-      <Navbar session={{ user, session }} />
-      <div className="flex w-full grow">
-        <Sidebar 
-          className="hidden h-full w-64 lg:block" 
-          session={{ user, session }} 
-        />
-        <main className="flex-grow p-5">{children}</main>
-      </div>
-    </div>
+    <SessionProvider value={{ user, session }}>
+      {children}
+    </SessionProvider>
   );
 }
