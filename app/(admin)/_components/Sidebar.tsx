@@ -15,6 +15,7 @@ import {
   ChevronDown,
   LucideIcon
 } from "lucide-react";
+import { Session } from "lucia";
 
 type NavItem = {
   href: string;
@@ -31,6 +32,7 @@ type Section = {
 
 interface SidebarProps {
   className?: string;
+  session: Session; 
   onClose?: () => void;
 }
 

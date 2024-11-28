@@ -7,12 +7,6 @@ interface SessionContext {
   user: User & {
     role:
       | "USER"
-      | "CUSTOMER"
-      | "SUBSCRIBER"
-      | "PROMO"
-      | "DISTRIBUTOR"
-      | "SHOPMANAGER"
-      | "EDITOR"
       | "ADMIN";
   };
   session: Session;
