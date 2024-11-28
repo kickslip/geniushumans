@@ -126,12 +126,12 @@ const RegistrationForm = () => {
 
           <FormField
             control={form.control}
-            name="agreeTerms"
+            name="username"
             render={({ field }) => (
               <FormItem className="flex flex-row items-start space-x-3 space-y-0 rounded-md border p-4">
                 <FormControl>
                   <Checkbox
-                    checked={field.value}
+                    checked={CheckedState}
                     onCheckedChange={field.onChange}
                   />
                 </FormControl>
