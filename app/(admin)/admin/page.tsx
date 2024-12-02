@@ -19,7 +19,7 @@ export default async function AdminPage() {
       <Sidebar session={session} />
       
       {/* Main content */}
-      <main className="flex-1 overflow-y-auto">
+      <main className="flex-1 overflow-y-auto" >
         <AdminPanel />
       </main>
     </div>
