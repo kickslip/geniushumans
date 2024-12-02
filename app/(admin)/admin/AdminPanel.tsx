@@ -2,7 +2,6 @@
 
 import React, { useState, useEffect } from 'react';
 import { format, parseISO } from 'date-fns';
-import { db } from '@/lib/db'; // Import your Prisma client
 import { 
   Select, 
   SelectContent, 
@@ -11,89 +10,82 @@ import {
   SelectValue 
 } from '@/components/ui/select';
 import { Button } from '@/components/ui/button';
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from '@/components/ui/dialog';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
-import { Toaster } from 'sonner';
-import Sidebar from '../_components/Sidebar';
+import { Toaster, toast } from 'sonner';
 
+// Import server actions
+import { 
+  getDetailedBookings, 
+  updateBookingStatus, 
+  deleteBooking 
+} from '@/lib/booking-management-actions';
+import { getBookingSummary, getBookingSummaryByConsultant } from '@/lib/booking-actions';
+
+// Define types
 interface BookingDetails {
   id: string;
   date: Date;
   time: string;
   consultant: string;
+  status: 'PENDING' | 'CONFIRMED' | 'CANCELLED';
   user: {
     name: string;
     email: string;
     company: string;
   };
-  status: string;
-  message?: string;
+  createdAt: Date;
+  updatedAt: Date;
 }
 
 const AdminPanel: React.FC = () => {
+  // State management
   const [bookings, setBookings] = useState<BookingDetails[]>([]);
-  const [filteredBookings, setFilteredBookings] = useState<BookingDetails[]>([]);
   const [selectedMonth, setSelectedMonth] = useState<string>(format(new Date(), 'yyyy-MM'));
   const [selectedConsultant, setSelectedConsultant] = useState<string>('all');
+  
+  // Booking summary states
+  const [bookingSummary, setBookingSummary] = useState({
+    totalBookings: 0,
+    pendingBookings: 0,
+    confirmedBookings: 0
+  });
+  const [consultantSummary, setConsultantSummary] = useState<Record<string, { 
+    total: number; 
+    pending: number; 
+    confirmed: number 
+  }>>({});
 
-  // Fetch bookings
+  // Selected booking for details modal
+  const [selectedBooking, setSelectedBooking] = useState<BookingDetails | null>(null);
+  const [isDetailsModalOpen, setIsDetailsModalOpen] = useState(false);
+
+  // Fetch bookings and summaries
   useEffect(() => {
-    const fetchBookings = async () => {
+    const fetchBookingsAndSummary = async () => {
       try {
-        const allBookings = await db.booking.findMany({
-          include: {
-            user: true
-          },
-          orderBy: {
-            date: 'desc'
-          }
-        });
+        // Fetch detailed bookings
+        const fetchedBookings = await getDetailedBookings(selectedMonth, selectedConsultant);
+        setBookings(fetchedBookings);
 
-        const formattedBookings = allBookings.map(booking => ({
-          id: booking.id,
-          date: booking.date,
-          time: booking.time,
-          consultant: booking.consultant,
-          user: {
-            name: booking.user.username,
-            email: booking.user.email,
-            company: 'N/A' // You might want to add company to your user model
-          },
-          status: booking.status,
-          message: '' // Add message if you have it in your model
-        }));
+        // Fetch overall summary
+        const summary = await getBookingSummary(selectedMonth);
+        setBookingSummary(summary);
 
-        setBookings(formattedBookings);
+        // Fetch consultant summary
+        const consultantSummaryData = await getBookingSummaryByConsultant(selectedMonth);
+        setConsultantSummary(consultantSummaryData);
       } catch (error) {
-        console.error('Failed to fetch bookings', error);
+        console.error('Failed to fetch bookings and summary', error);
+        toast.error('Failed to load bookings. Please try again.');
       }
     };
 
-    fetchBookings();
-  }, []);
+    fetchBookingsAndSummary();
+  }, [selectedMonth, selectedConsultant]);
 
-  // Filter bookings
-  useEffect(() => {
-    let result = bookings;
-
-    // Filter by month
-    if (selectedMonth) {
-      result = result.filter(booking => 
-        format(booking.date, 'yyyy-MM') === selectedMonth
-      );
-    }
-
-    // Filter by consultant
-    if (selectedConsultant !== 'all') {
-      result = result.filter(booking => 
-        booking.consultant === selectedConsultant
-      );
-    }
-
-    setFilteredBookings(result);
-  }, [bookings, selectedMonth, selectedConsultant]);
-
-  // Generate month options
+  // Month options generation
   const generateMonthOptions = () => {
     const months = [];
     const currentDate = new Date();
@@ -112,11 +104,60 @@ const AdminPanel: React.FC = () => {
     new Set(bookings.map(booking => booking.consultant))
   );
 
-  // Booking summary
-  const bookingSummary = {
-    totalBookings: filteredBookings.length,
-    pendingBookings: filteredBookings.filter(b => b.status === 'PENDING').length,
-    confirmedBookings: filteredBookings.filter(b => b.status === 'CONFIRMED').length,
+  // Handle booking status update
+  const handleUpdateStatus = async (status: 'PENDING' | 'CONFIRMED' | 'CANCELLED') => {
+    if (!selectedBooking) return;
+
+    try {
+      const formData = new FormData();
+      formData.append('id', selectedBooking.id);
+      formData.append('status', status);
+
+      const result = await updateBookingStatus(formData);
+
+      if (result.success) {
+        toast.success('Booking status updated successfully');
+        // Refresh bookings
+        const updatedBookings = await getDetailedBookings(selectedMonth, selectedConsultant);
+        setBookings(updatedBookings);
+        // Close modal
+        setIsDetailsModalOpen(false);
+      } else {
+        toast.error(result.message || 'Failed to update booking status');
+      }
+    } catch (error) {
+      console.error('Error updating booking status', error);
+      toast.error('Failed to update booking status');
+    }
+  };
+
+  // Handle booking deletion
+  const handleDeleteBooking = async () => {
+    if (!selectedBooking) return;
+
+    try {
+      const result = await deleteBooking(selectedBooking.id);
+
+      if (result.success) {
+        toast.success('Booking deleted successfully');
+        // Refresh bookings
+        const updatedBookings = await getDetailedBookings(selectedMonth, selectedConsultant);
+        setBookings(updatedBookings);
+        // Close modal
+        setIsDetailsModalOpen(false);
+      } else {
+        toast.error(result.message || 'Failed to delete booking');
+      }
+    } catch (error) {
+      console.error('Error deleting booking', error);
+      toast.error('Failed to delete booking');
+    }
+  };
+
+  // Open booking details modal
+  const openBookingDetails = (booking: BookingDetails) => {
+    setSelectedBooking(booking);
+    setIsDetailsModalOpen(true);
   };
 
   return (
@@ -197,6 +238,27 @@ const AdminPanel: React.FC = () => {
         </Card>
       </div>
 
+      {/* Consultant Summary Section */}
+      {Object.keys(consultantSummary).length > 0 && (
+        <div className="mb-6">
+          <h2 className="text-2xl font-bold mb-4">Consultant Booking Summary</h2>
+          <div className="grid grid-cols-3 gap-4">
+            {Object.entries(consultantSummary).map(([consultant, summary]) => (
+              <Card key={consultant}>
+                <CardHeader>
+                  <CardTitle>{consultant}</CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <p>Total Bookings: {summary.total}</p>
+                  <p className="text-yellow-600">Pending: {summary.pending}</p>
+                  <p className="text-green-600">Confirmed: {summary.confirmed}</p>
+                </CardContent>
+              </Card>
+            ))}
+          </div>
+        </div>
+      )}
+
       {/* Bookings Table */}
       <Card>
         <CardHeader>
@@ -216,7 +278,7 @@ const AdminPanel: React.FC = () => {
               </TableRow>
             </TableHeader>
             <TableBody>
-              {filteredBookings.map(booking => (
+              {bookings.map(booking => (
                 <TableRow key={booking.id}>
                   <TableCell>
                     {format(booking.date, 'MMM dd, yyyy')}
@@ -237,7 +299,11 @@ const AdminPanel: React.FC = () => {
                     </span>
                   </TableCell>
                   <TableCell>
-                    <Button size="sm" variant="outline">
+                    <Button 
+                      size="sm" 
+                      variant="outline"
+                      onClick={() => openBookingDetails(booking)}
+                    >
                       View Details
                     </Button>
                   </TableCell>
@@ -247,6 +313,78 @@ const AdminPanel: React.FC = () => {
           </Table>
         </CardContent>
       </Card>
+
+      {/* Booking Details Modal */}
+      {selectedBooking && (
+        <Dialog 
+          open={isDetailsModalOpen} 
+          onOpenChange={setIsDetailsModalOpen}
+        >
+          <DialogContent>
+            <DialogHeader>
+              <DialogTitle>Booking Details</DialogTitle>
+              <DialogDescription>
+                Detailed information about the selected booking
+              </DialogDescription>
+            </DialogHeader>
+            
+            <div className="space-y-4">
+              <div>
+                <strong>Date:</strong> {format(selectedBooking.date, 'MMMM dd, yyyy')}
+              </div>
+              <div>
+                <strong>Time:</strong> {selectedBooking.time}
+              </div>
+              <div>
+                <strong>Consultant:</strong> {selectedBooking.consultant}
+              </div>
+              <div>
+                <strong>Status:</strong> {selectedBooking.status}
+              </div>
+              <div>
+                <strong>User Name:</strong> {selectedBooking.user.name}
+              </div>
+              <div>
+                <strong>Email:</strong> {selectedBooking.user.email}
+              </div>
+              <div>
+                <strong>Company:</strong> {selectedBooking.user.company}
+              </div>
+              <div>
+                <strong>Created At:</strong> {format(selectedBooking.createdAt, 'MMMM dd, yyyy HH:mm')}
+              </div>
+              <div>
+                <strong>Last Updated:</strong> {format(selectedBooking.updatedAt, 'MMMM dd, yyyy HH:mm')}
+              </div>
+
+              <div className="flex space-x-2">
+                {selectedBooking.status !== 'CONFIRMED' && (
+                  <Button 
+                    variant="secondary" 
+                    onClick={() => handleUpdateStatus('CONFIRMED')}
+                  >
+                    Confirm Booking
+                  </Button>
+                )}
+                {selectedBooking.status !== 'CANCELLED' && (
+                  <Button 
+                    variant="destructive" 
+                    onClick={() => handleUpdateStatus('CANCELLED')}
+                  >
+                    Cancel Booking
+                  </Button>
+                )}
+                <Button 
+                  variant="outline" 
+                  onClick={handleDeleteBooking}
+                >
+                  Delete Booking
+                </Button>
+              </div>
+            </div>
+          </DialogContent>
+        </Dialog>
+      )}
 
       <Toaster />
     </div>
