@@ -9,56 +9,57 @@ datasource db {
   directUrl = env("POSTGRES_URL_NON_POOLING")
 }
 
-enum UserRole {
-  USER
-  ADMIN
-}
-
+// User model: Users who interact with the Kanban board
 model User {
-  id               String    @id @default(uuid())
-  username         String    @unique
-  email            String    @unique
-  company          String?
-  message          String?
-  passwordHash     String
-  phoneNumber      String
-  wpId             String?   @unique
-  resetToken       String?
-  resetTokenExpiry DateTime?
-  role             UserRole  @default(USER)
-  createdAt        DateTime  @default(now())
-  updatedAt        DateTime  @updatedAt
-  Session          Session[]
-  Booking          Booking[]
+  id        String   @id @default(uuid())
+  username  String   @unique
+  email     String   @unique
+  passwordHash String
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  Board     Board[]  // Relation to boards the user owns
 
   @@map("users")
 }
 
-model Session {
-  id        String   @id @default(cuid())
+// Board model: Represents a Kanban board
+model Board {
+  id        String     @id @default(uuid())
+  name      String
   userId    String
-  expiresAt DateTime
-  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  user      User       @relation(fields: [userId], references: [id], onDelete: Cascade)
+  createdAt DateTime   @default(now())
+  updatedAt DateTime   @updatedAt
+  Columns   Column[]   // Relation to columns on the board
 
-  @@map("sessions")
+  @@map("boards")
 }
 
-model Booking {
-  id         String        @id @default(uuid())
-  userId     String
-  user       User          @relation(fields: [userId], references: [id], onDelete: Cascade)
-  date       DateTime
-  time       String
-  consultant String
-  createdAt  DateTime      @default(now())
-  updatedAt  DateTime      @updatedAt
-  status     BookingStatus @default(PENDING)
+// Column model: Represents a column in the Kanban board (e.g., "To Do", "In Progress")
+model Column {
+  id        String     @id @default(uuid())
+  name      String
+  boardId   String
+  board     Board      @relation(fields: [boardId], references: [id], onDelete: Cascade)
+  order     Int        // Determines the order of columns in the board
+  createdAt DateTime   @default(now())
+  updatedAt DateTime   @updatedAt
+  Cards     Card[]     // Relation to cards in the column
 
-  @@map("bookings")
+  @@map("columns")
 }
 
-enum BookingStatus {
-  PENDING
-  CONFIRMED
-  CANCELLED
+// Card model: Represents tasks/cards in a column
+model Card {
+  id          String    @id @default(uuid())
+  title       String
+  description String?
+  columnId    String
+  column      Column    @relation(fields: [columnId], references: [id], onDelete: Cascade)
+  order       Int       // Determines the order of cards in the column
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+
+  @@map("cards")
 }
