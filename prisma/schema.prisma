@@ -1,6 +1,5 @@
 generator client {
-  provider        = "prisma-client-js"
-  previewFeatures = ["fullTextSearch"]
+  provider = "prisma-client-js"
 }
 
 datasource db {
@@ -9,21 +8,63 @@ datasource db {
   directUrl = env("POSTGRES_URL_NON_POOLING")
 }
 
-// User model: Users who interact with the Kanban board
+enum Role {
+  USER
+  ADMIN
+}
+
+enum BookingStatus {
+  PENDING
+  CONFIRMED
+  CANCELLED
+}
+
 model User {
-  id        String   @id @default(uuid())
-  username  String   @unique
-  email     String   @unique
-  passwordHash String
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+  id            String    @id @default(uuid())
+  username      String    @unique
+  email         String    @unique
+  passwordHash  String
+  avatarUrl     String?
+  googleId      String?
+  role         Role      @default(USER)
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
 
-  Board     Board[]  // Relation to boards the user owns
-
+  Board         Board[]
+  sessions      Session[]
+  Bookings      Booking[]
+  
   @@map("users")
 }
 
-// Board model: Represents a Kanban board
+model Session {
+  id        String   @id
+  userId    String
+  expiresAt DateTime
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@map("sessions")
+}
+
+model Booking {
+  id          String         @id @default(uuid())
+  userId      String
+  user        User           @relation(fields: [userId], references: [id], onDelete: Cascade)
+  date        DateTime
+  time        String
+  consultant  String
+  company     String?
+  message     String?
+  name        String
+  email       String
+  status      BookingStatus  @default(PENDING)
+  createdAt   DateTime       @default(now())
+  updatedAt   DateTime       @updatedAt
+
+  @@map("bookings")
+}
+
+// Existing models remain the same...
 model Board {
   id        String     @id @default(uuid())
   name      String
@@ -31,33 +72,31 @@ model Board {
   user      User       @relation(fields: [userId], references: [id], onDelete: Cascade)
   createdAt DateTime   @default(now())
   updatedAt DateTime   @updatedAt
-  Columns   Column[]   // Relation to columns on the board
+  Columns   Column[]
 
   @@map("boards")
 }
 
-// Column model: Represents a column in the Kanban board (e.g., "To Do", "In Progress")
 model Column {
   id        String     @id @default(uuid())
   name      String
   boardId   String
   board     Board      @relation(fields: [boardId], references: [id], onDelete: Cascade)
-  order     Int        // Determines the order of columns in the board
+  order     Int
   createdAt DateTime   @default(now())
   updatedAt DateTime   @updatedAt
-  Cards     Card[]     // Relation to cards in the column
+  Cards     Card[]
 
   @@map("columns")
 }
 
-// Card model: Represents tasks/cards in a column
 model Card {
   id          String    @id @default(uuid())
   title       String
   description String?
   columnId    String
   column      Column    @relation(fields: [columnId], references: [id], onDelete: Cascade)
-  order       Int       // Determines the order of cards in the column
+  order       Int
   createdAt   DateTime  @default(now())
   updatedAt   DateTime  @updatedAt
 

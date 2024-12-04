@@ -1,8 +1,36 @@
-// lib/booking-actions.ts
 "use server";
 
-import { db } from "./db";
+import { z } from "zod";
 import { format } from "date-fns";
+import { revalidatePath } from "next/cache";
+import { db } from "./db";
+import { BookingStatus } from "@prisma/client";
+
+// Constants
+const BUSINESS_HOURS = {
+  start: 9, // 9 AM
+  end: 17, // 5 PM
+};
+
+const BOOKING_WINDOW_DAYS = 30;
+const MAX_BOOKINGS_PER_DAY = 3;
+
+// Validation schema for booking
+const BookingSchema = z.object({
+  date: z.date(),
+  time: z.string().refine(
+    (time) => {
+      const [hour] = time.split(":").map(Number);
+      return hour >= BUSINESS_HOURS.start && hour < BUSINESS_HOURS.end;
+    },
+    { message: "Booking time must be during business hours (9 AM - 5 PM)" }
+  ),
+  consultant: z.string().min(1, "Consultant is required"),
+  name: z.string().min(2, "Name must be at least 2 characters"),
+  email: z.string().email("Invalid email address"),
+  company: z.string().optional(),
+  message: z.string().optional(),
+});
 
 export async function getBookingSummary(month?: string) {
   try {
@@ -11,48 +39,46 @@ export async function getBookingSummary(month?: string) {
 
     // Parse the month string
     const [year, monthNum] = targetMonth.split('-').map(Number);
-    
+
     // Create date range for the specified month
     const startDate = new Date(year, monthNum - 1, 1);
     const endDate = new Date(year, monthNum, 0);
 
-    // Fetch total bookings for the month
-    const totalBookings = await db.booking.count({
+    // Fetch bookings grouped by status
+    const bookingStats = await db.booking.groupBy({
+      by: ['status'],
       where: {
         date: {
           gte: startDate,
           lte: endDate
         }
+      },
+      _count: {
+        id: true
       }
     });
 
-    // Fetch pending bookings for the month
-    const pendingBookings = await db.booking.count({
-      where: {
-        date: {
-          gte: startDate,
-          lte: endDate
-        },
-        status: 'PENDING'
+    // Transform results into a more readable format
+    const summary = bookingStats.reduce((acc, booking) => {
+      switch (booking.status) {
+        case 'PENDING':
+          acc.pendingBookings = booking._count.id;
+          break;
+        case 'CONFIRMED':
+          acc.confirmedBookings = booking._count.id;
+          break;
+        default:
+          break;
       }
+      acc.totalBookings = (acc.totalBookings || 0) + booking._count.id;
+      return acc;
+    }, {
+      totalBookings: 0,
+      pendingBookings: 0,
+      confirmedBookings: 0
     });
 
-    // Fetch confirmed bookings for the month
-    const confirmedBookings = await db.booking.count({
-      where: {
-        date: {
-          gte: startDate,
-          lte: endDate
-        },
-        status: 'CONFIRMED'
-      }
-    });
-
-    return {
-      totalBookings,
-      pendingBookings,
-      confirmedBookings
-    };
+    return summary;
   } catch (error) {
     console.error('Failed to fetch booking summary:', error);
     return {
@@ -63,27 +89,31 @@ export async function getBookingSummary(month?: string) {
   }
 }
 
-export async function getBookingSummaryByConsultant(month?: string) {
+export async function getBookingSummaryByConsultant(consultantId?: string, month?: string) {
   try {
     // If no month is provided, use current month
     const targetMonth = month || format(new Date(), 'yyyy-MM');
 
     // Parse the month string
     const [year, monthNum] = targetMonth.split('-').map(Number);
-    
+
     // Create date range for the specified month
     const startDate = new Date(year, monthNum - 1, 1);
     const endDate = new Date(year, monthNum, 0);
 
-    // Fetch bookings grouped by consultant
+    // Prepare where clause
+    const whereClause = {
+      date: {
+        gte: startDate,
+        lte: endDate
+      },
+      ...(consultantId ? { consultant: consultantId } : {})
+    };
+
+    // Fetch bookings grouped by consultant and status
     const consultantBookings = await db.booking.groupBy({
       by: ['consultant', 'status'],
-      where: {
-        date: {
-          gte: startDate,
-          lte: endDate
-        }
-      },
+      where: whereClause,
       _count: {
         id: true
       }
@@ -115,5 +145,25 @@ export async function getBookingSummaryByConsultant(month?: string) {
   } catch (error) {
     console.error('Failed to fetch consultant booking summary:', error);
     return {};
+  }
+}
+
+// Optional: If you need a more generic summary method
+export async function getOverallBookingSummary() {
+  try {
+    const bookingSummary = await db.booking.groupBy({
+      by: ['status'],
+      _count: {
+        id: true
+      }
+    });
+
+    return bookingSummary.map(booking => ({
+      status: booking.status,
+      count: booking._count.id
+    }));
+  } catch (error) {
+    console.error("Error fetching overall booking summary:", error);
+    return [];
   }
 }

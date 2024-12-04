@@ -4,6 +4,7 @@
 import { db } from "./db";
 import { revalidatePath } from "next/cache";
 import { z } from "zod";
+import { BookingStatus } from "@prisma/client";
 
 // Validation schema for booking update
 const BookingUpdateSchema = z.object({
@@ -135,5 +136,30 @@ export async function deleteBooking(bookingId: string) {
       success: false,
       message: 'Failed to delete booking. Please try again.'
     };
+  }
+}
+
+export async function getBookingSummary() {
+  try {
+    const totalBookings = await db.booking.count();
+    const pendingBookings = await db.booking.count({
+      where: { status: 'PENDING' }
+    });
+    const confirmedBookings = await db.booking.count({
+      where: { status: 'CONFIRMED' }
+    });
+    const cancelledBookings = await db.booking.count({
+      where: { status: 'CANCELLED' }
+    });
+
+    return {
+      total: totalBookings,
+      pending: pendingBookings,
+      confirmed: confirmedBookings,
+      cancelled: cancelledBookings
+    };
+  } catch (error) {
+    console.error("Error fetching booking summary:", error);
+    throw new Error("Failed to fetch booking summary");
   }
 }
