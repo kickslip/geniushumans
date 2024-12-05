@@ -26,15 +26,13 @@ export default async function ProfilePage() {
   async function handleUpdateProfile(formData: FormData) {
     "use server";
     
-    const displayName = formData.get("displayName") as string;
     const username = formData.get("username") as string;
 
-    if (!displayName || !username) {
+    if (!username) {
       return { error: "All fields are required" };
     }
 
     const result = await updateProfile(profile.id, {
-      displayName,
       username,
     });
 
@@ -73,15 +71,6 @@ export default async function ProfilePage() {
                 />
               </div>
               
-              <div className="space-y-2">
-                <Label htmlFor="displayName">Display Name</Label>
-                <Input
-                  id="displayName"
-                  name="displayName"
-                  defaultValue={profile.displayName}
-                  required
-                />
-              </div>
 
               <div className="space-y-2">
                 <Label>Account Created</Label>
