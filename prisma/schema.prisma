@@ -104,3 +104,14 @@ model Card {
 
   @@map("cards")
 }
+
+model ContactForm {
+  id        String   @id @default(cuid())
+  fullName  String
+  email     String
+  mobile    String
+  country   String
+  package   String
+  message   String
+  submittedAt DateTime @default(now())
+}

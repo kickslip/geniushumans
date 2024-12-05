@@ -22,6 +22,8 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import { useState } from "react";
+import { saveContactForm } from "@/lib/actions"; // You'll need to create this file
 
 const formSchema = z.object({
   fullName: z.string().min(2, "Name must be at least 2 characters"),
@@ -49,6 +51,10 @@ const countries = [
 ];
 
 export function ContactSection() {
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [submitError, setSubmitError] = useState<string | null>(null);
+  const [submitSuccess, setSubmitSuccess] = useState(false);
+
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
     defaultValues: {
@@ -62,8 +68,25 @@ export function ContactSection() {
   });
 
   async function onSubmit(values: z.infer<typeof formSchema>) {
-    console.log(values);
-    // Here you would typically send the form data to your backend
+    setIsSubmitting(true);
+    setSubmitError(null);
+    setSubmitSuccess(false);
+
+    try {
+      const result = await saveContactForm(values);
+      
+      if (result.success) {
+        setSubmitSuccess(true);
+        form.reset(); // Reset the form on successful submission
+      } else {
+        setSubmitError(result.error || "Failed to submit the form");
+      }
+    } catch (error) {
+      setSubmitError("An unexpected error occurred");
+      console.error(error);
+    } finally {
+      setIsSubmitting(false);
+    }
   }
 
   return (
@@ -194,8 +217,22 @@ export function ContactSection() {
                 )}
               />
 
-              <Button type="submit" className="w-full">
-                Send Message
+              {submitError && (
+                <div className="text-red-500 text-sm">{submitError}</div>
+              )}
+
+              {submitSuccess && (
+                <div className="text-green-500 text-sm">
+                  Your message has been sent successfully!
+                </div>
+              )}
+
+              <Button 
+                type="submit" 
+                className="w-full" 
+                disabled={isSubmitting}
+              >
+                {isSubmitting ? "Sending..." : "Send Message"}
               </Button>
             </form>
           </Form>
