@@ -15,6 +15,10 @@ import {
   ChevronDown,
   LucideIcon,
   KanbanSquare,
+  PersonStandingIcon,
+  CheckSquare,
+  Calendar,
+  Mail,
 } from "lucide-react";
 import { Session } from "lucia";
 
@@ -57,6 +61,30 @@ const Sidebar: React.FC<SidebarProps> = ({ className, session, onClose }) => {
         section: "Projects",
         items: [
           {href: "/admin/kanban", icon: KanbanSquare, label: "Kanban-Board", color: "orange"}
+        ]
+      },
+      {
+        section: "Teams",
+        items: [
+          {href: "/teams", icon: PersonStandingIcon, label: "Teams", color: "blue"}
+        ]
+      },
+      {
+        section: "Tasks",
+        items: [
+          {href: "/task", icon: CheckSquare, label: "Tasks", color: "red"}
+        ]
+      },
+      {
+        section: "Calender",
+        items: [
+          {href: "/calender", icon: Calendar, label: "Calender", color: "yellow"}
+        ]
+      },
+      {
+        section: "Messages",
+        items: [
+          {href: "/messages", icon: Mail, label: "Messages", color: "beige"}
         ]
       },
     ],
