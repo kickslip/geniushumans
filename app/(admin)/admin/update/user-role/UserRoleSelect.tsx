@@ -1,24 +1,24 @@
 "use client";
 
 import React, { useState } from "react";
-import { UserRole } from "@prisma/client";
+import { Role } from "@prisma/client";
 import { updateUserRole } from "./actions";
 
 interface UserRoleSelectProps {
   userId: string;
-  initialRole: UserRole;
+  initialRole: Role;
 }
 
 const UserRoleSelect: React.FC<UserRoleSelectProps> = ({
   userId,
   initialRole,
 }) => {
-  const [role, setRole] = useState<UserRole>(initialRole);
+  const [role, setRole] = useState<Role>(initialRole);
   const [isUpdating, setIsUpdating] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
   const handleRoleChange = async (e: React.ChangeEvent<HTMLSelectElement>) => {
-    const newRole = e.target.value as UserRole;
+    const newRole = e.target.value as Role;
     setRole(newRole);
     setIsUpdating(true);
     setError(null);
@@ -46,7 +46,7 @@ const UserRoleSelect: React.FC<UserRoleSelectProps> = ({
         disabled={isUpdating}
         className="block w-full bg-white border border-gray-300 hover:border-gray-400 px-4 py-2 pr-8 rounded shadow leading-tight focus:outline-none focus:shadow-outline"
       >
-        {Object.values(UserRole).map((roleOption) => (
+        {Object.values(Role).map((roleOption) => (
           <option key={roleOption} value={roleOption}>
             {roleOption}
           </option>

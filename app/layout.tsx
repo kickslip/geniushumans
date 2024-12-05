@@ -35,8 +35,11 @@ export default async function RootLayout({
             disableTransitionOnChange
           >
             <Navigation />
+            <div className='mt-20'>
             {children}
+            </div>
             <Toaster />
+            
           </ThemeProvider>
         </SessionProvider>
       </body>

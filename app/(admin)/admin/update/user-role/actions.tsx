@@ -3,7 +3,7 @@
 import { validateRequest } from "@/auth";
 import prisma from "@/lib/prisma";
 import { revalidatePath } from "next/cache";
-import { UserRole } from "@prisma/client";
+import { Role } from "@prisma/client";
 
 type UpdateUserRoleResult =
   | { success: true; message: string }
@@ -17,7 +17,7 @@ type User = {
   displayName: string;
   email: string;
   companyName: string;
-  role: UserRole;
+  role: Role;
   createdAt: Date;
 };
 
@@ -67,7 +67,7 @@ export async function fetchAllUsers(): Promise<FetchAllUsersResult> {
 
 export async function updateUserRole(
   userId: string,
-  newRole: UserRole
+  newRole: Role
 ): Promise<UpdateUserRoleResult> {
   try {
     // Validate user session

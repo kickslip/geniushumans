@@ -14,6 +14,7 @@ import {
   PlusCircle,
   ChevronDown,
   LucideIcon,
+  KanbanSquare,
 } from "lucide-react";
 import { Session } from "lucia";
 
@@ -53,39 +54,10 @@ const Sidebar: React.FC<SidebarProps> = ({ className, session, onClose }) => {
         ],
       },
       {
-        section: "PRODUCTS",
+        section: "Projects",
         items: [
-          { href: "/admin/products/create", icon: PlusCircle, label: "Create", color: "#4CAF50" },
-          {
-            href: "/admin/products",
-            icon: ShoppingBag,
-            label: "Products",
-            color: "#2196F3",
-            subItems: [
-              {
-                href: "/headwear",
-                icon: Sun,
-                label: "Headwear",
-                color: "#FF9800",
-                subItems: [
-                  { href: "/leisure-collection", icon: Package, label: "Leisure", color: "#9C27B0" },
-                  { href: "/industrial-collection", icon: Package, label: "Industrial", color: "#795548" },
-                  { href: "/signature-collection", icon: Package, label: "Signature", color: "#607D8B" },
-                ],
-              },
-              {
-                href: "/apparel",
-                icon: Shirt,
-                label: "Apparel",
-                color: "#3F51B5",
-                subItems: [
-                  { href: "/new-in-apparel-collection", icon: Package, label: "New", color: "#FFEB3B" },
-                  { href: "/men-collection", icon: Package, label: "Men", color: "#2196F3" },
-                ],
-              },
-            ],
-          },
-        ],
+          {href: "/admin/kanban", icon: KanbanSquare, label: "Kanban-Board", color: "orange"}
+        ]
       },
     ],
     []
