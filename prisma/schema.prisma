@@ -24,9 +24,10 @@ model User {
   username      String    @unique
   email         String    @unique
   passwordHash  String
+  phoneNumber   String    @default("")
   avatarUrl     String?
   googleId      String?
-  role         Role      @default(USER)
+  role          Role      @default(USER)
   createdAt     DateTime  @default(now())
   updatedAt     DateTime  @updatedAt
 

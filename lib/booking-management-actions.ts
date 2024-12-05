@@ -11,7 +11,8 @@ const BookingUpdateSchema = z.object({
   id: z.string().uuid(),
   status: z.enum(['PENDING', 'CONFIRMED', 'CANCELLED']).optional(),
   consultant: z.string().optional(),
-  message: z.string().optional()
+  message: z.string().optional(),
+  company: z.string().optional()
 });
 
 export async function getDetailedBookings(
