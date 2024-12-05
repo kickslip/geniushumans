@@ -25,6 +25,7 @@ model User {
   email         String    @unique
   passwordHash  String
   phoneNumber   String    @default("")
+  company       String?
   avatarUrl     String?
   googleId      String?
   role          Role      @default(USER)

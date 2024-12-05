@@ -147,6 +147,8 @@ export async function createBooking(prevState: any, formData: FormData) {
         time,
         consultant,
         status: "PENDING",
+        name,
+        email,
       },
     });
 
