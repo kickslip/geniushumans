@@ -114,5 +114,5 @@ model ContactForm {
   package   String
   message   String
   submittedAt DateTime @default(now())
-   @@map("ContactForm")
+   @@map("contactForm")
 }
