@@ -2,7 +2,6 @@
 
 import prisma from "@/lib/prisma";
 import { RegistrationFormData, registrationSchema } from "@/lib/validations";
-
 import { hash } from "@node-rs/argon2";
 import { generateIdFromEntropySize } from "lucia";
 import { isRedirectError } from "next/dist/client/components/redirect";

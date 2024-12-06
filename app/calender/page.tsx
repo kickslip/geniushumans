@@ -1,8 +1,7 @@
 import { validateRequest } from "@/auth";
-import Sidebar from "../../_components/Sidebar";
 import { redirect } from "next/navigation";
-import KanbanBoard from "../../_components/KanbanBoard";
-
+import Sidebar from "../(admin)/_components/Sidebar";
+import CalendarPanel from "@/components/Calendar";
 
 export default async function KanbanPage() {
     const { user, session } = await validateRequest();
@@ -17,7 +16,7 @@ export default async function KanbanPage() {
         <Sidebar session={session} />
       {/* Main content */}
       <main className="flex-1 overflow-y-auto" >
-        <KanbanBoard />
+        <CalendarPanel />
       </main>
     </div>
   );

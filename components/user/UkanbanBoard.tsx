@@ -114,4 +114,4 @@ const KanbanBoard = () => {
   );
 };
 
-export default UkanbanBoard;
+export default KanbanBoard;

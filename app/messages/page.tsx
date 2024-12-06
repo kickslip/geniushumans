@@ -1,7 +1,7 @@
 import { validateRequest } from "@/auth";
-import Sidebar from "../../_components/Sidebar";
 import { redirect } from "next/navigation";
-import KanbanBoard from "../../_components/KanbanBoard";
+import ContactFormMessages from "@/components/booking/ContactFormMessages";
+import Sidebar from "../(admin)/_components/Sidebar";
 
 
 export default async function KanbanPage() {
@@ -17,7 +17,8 @@ export default async function KanbanPage() {
         <Sidebar session={session} />
       {/* Main content */}
       <main className="flex-1 overflow-y-auto" >
-        <KanbanBoard />
+        <h1 className="text-3xl font-bold mb-8">Messages</h1>
+        <ContactFormMessages />
       </main>
     </div>
   );
