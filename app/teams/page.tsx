@@ -1,15 +1,24 @@
-export default function Team() {
-    return (
-      <div className="container mx-auto px-4 py-8">
-        <h1 className="font-display text-4xl font-bold text-primary">Team</h1>
-        <div>
-            <h2>Team 1</h2>
-            <ul>
-                <li>Person 1</li>
-                <li>Person 2</li>
-                <li>Person 3</li>
-            </ul>
-        </div>
-      </div>
-    );
+import { validateRequest } from '@/auth';
+import { redirect } from 'next/navigation';
+import React from "react";
+import Sidebar from '../(admin)/_components/Sidebar';
+
+export default async function AdminPage() {
+  const { user, session } = await validateRequest();
+
+  // Redirect if not authenticated or not an admin
+  if (!session || !user || user.role !== 'ADMIN') {
+    redirect('/login');
   }
+
+  return (
+    <div className="flex min-h-screen">
+      {/* Sidebar */}
+      <Sidebar session={session} />
+      {/* Main content */}
+      <main className="flex-1 overflow-y-auto" >
+        
+      </main>
+    </div>
+  );
+}
