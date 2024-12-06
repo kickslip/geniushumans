@@ -16,7 +16,6 @@ import { Plus } from 'lucide-react';
 import { useForm } from 'react-hook-form';
 import { z } from 'zod';
 import { zodResolver } from '@hookform/resolvers/zod';
-import { createProject } from '@/lib/actions/project-actions';
 
 const projectSchema = z.object({
   title: z.string().min(2, "Title must be at least 2 characters"),

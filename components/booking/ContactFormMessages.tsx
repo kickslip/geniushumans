@@ -1,26 +1,42 @@
-import React from 'react';
+"use client"
+import { useState } from 'react';
 import { db } from '@/lib/db';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { ScrollArea } from '@/components/ui/scroll-area';
+import { Button } from '@/components/ui/button';
 import { formatDistance } from 'date-fns';
 
-async function getContactFormMessages() {
+async function getAllContactFormMessages() {
   try {
-    const messages = await db.contactForm.findMany({
-      orderBy: {
-        submittedAt: 'desc'
-      }
+    return await db.contactForm.findMany({
+      orderBy: { submittedAt: 'desc' }
     });
-    return messages;
   } catch (error) {
     console.error('Failed to fetch contact form messages:', error);
     return [];
   }
 }
 
-export default async function ContactFormMessages() {
-  const messages = await getContactFormMessages();
+export default function ContactFormMessages() {
+  const [messages, setMessages] = useState<any[]>([]);
+  const [currentPage, setCurrentPage] = useState(1);
+  const [messagesPerPage] = useState(5);
+
+  const fetchMessages = async () => {
+    const allMessages = await getAllContactFormMessages();
+    setMessages(allMessages);
+  };
+
+  if (messages.length === 0) {
+    fetchMessages();
+  }
+
+  const indexOfLastMessage = currentPage * messagesPerPage;
+  const indexOfFirstMessage = indexOfLastMessage - messagesPerPage;
+  const currentMessages = messages.slice(indexOfFirstMessage, indexOfLastMessage);
+
+  const paginate = (pageNumber: number) => setCurrentPage(pageNumber);
 
   return (
     <Card className="w-full">
@@ -28,28 +44,24 @@ export default async function ContactFormMessages() {
         <CardTitle>Contact Form Submissions</CardTitle>
       </CardHeader>
       <CardContent>
-        <ScrollArea className="h-[600px] w-full">
+        <ScrollArea className="h-[400px]">
           <Table>
             <TableHeader>
               <TableRow>
-                <TableHead>Name</TableHead>
-                <TableHead>Email</TableHead>
-                <TableHead>Mobile</TableHead>
-                <TableHead>Country</TableHead>
-                <TableHead>Package</TableHead>
-                <TableHead>Submitted</TableHead>
-                <TableHead>Message</TableHead>
+                {['Name', 'Email', 'Mobile', 'Country', 'Package', 'Submitted'].map(header => (
+                  <TableHead key={header}>{header}</TableHead>
+                ))}
               </TableRow>
             </TableHeader>
             <TableBody>
-              {messages.length === 0 ? (
+              {currentMessages.length === 0 ? (
                 <TableRow>
-                  <TableCell colSpan={7} className="text-center">
+                  <TableCell colSpan={6} className="text-center">
                     No contact form submissions yet.
                   </TableCell>
                 </TableRow>
               ) : (
-                messages.map((message) => (
+                currentMessages.map((message) => (
                   <TableRow key={message.id}>
                     <TableCell>{message.fullName}</TableCell>
                     <TableCell>{message.email}</TableCell>
@@ -57,12 +69,7 @@ export default async function ContactFormMessages() {
                     <TableCell>{message.country}</TableCell>
                     <TableCell>{message.package}</TableCell>
                     <TableCell>
-                      {formatDistance(new Date(message.submittedAt), new Date(), {
-                        addSuffix: true
-                      })}
-                    </TableCell>
-                    <TableCell className="max-w-xs truncate" title={message.message}>
-                      {message.message}
+                      {formatDistance(new Date(message.submittedAt), new Date(), { addSuffix: true })}
                     </TableCell>
                   </TableRow>
                 ))
@@ -70,6 +77,17 @@ export default async function ContactFormMessages() {
             </TableBody>
           </Table>
         </ScrollArea>
+        <div className="flex justify-center mt-4">
+          {Array.from({ length: Math.ceil(messages.length / messagesPerPage) }, (_, i) => i + 1).map(pageNumber => (
+            <Button
+              key={pageNumber}
+              className={`mx-1 ${currentPage === pageNumber ? 'bg-primary text-primary-foreground' : 'bg-secondary hover:bg-secondary-hover'}`}
+              onClick={() => paginate(pageNumber)}
+            >
+              {pageNumber}
+            </Button>
+          ))}
+        </div>
       </CardContent>
     </Card>
   );

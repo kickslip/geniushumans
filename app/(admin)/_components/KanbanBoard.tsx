@@ -2,77 +2,82 @@
 import React, { useState } from 'react';
 import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { Plus, Trash2, Edit } from 'lucide-react';
+import { Plus, Trash2 } from 'lucide-react';
 
-// Sample initial data structure for projects
-const initialProjects = [
-  {
-    id: '1',
-    title: 'Website Redesign',
-    description: 'Revamp company website with modern design',
-    status: 'New Projects'
-  },
-  {
-    id: '2',
-    title: 'Mobile App Development',
-    description: 'Create cross-platform mobile application',
-    status: 'In Progress'
-  },
-  {
-    id: '3',
-    title: 'SEO Optimization',
-    description: 'Improve search engine rankings',
-    status: 'Completed Projects'
-  }
-];
+interface Project {
+  id: string;
+  title: string;
+  description: string;
+  status: string;
+}
+
+const columns = ['New Projects', 'In Progress', 'Completed Projects'];
 
 const KanbanBoard = () => {
-  const [projects, setProjects] = useState(initialProjects);
+  const [projects, setProjects] = useState<Project[]>([
+    {
+      id: '1',
+      title: 'Website Redesign',
+      description: 'Revamp company website with modern design',
+      status: 'New Projects'
+    },
+    {
+      id: '2',
+      title: 'Mobile App Development',
+      description: 'Create cross-platform mobile application',
+      status: 'In Progress'
+    },
+    {
+      id: '3',
+      title: 'SEO Optimization',
+      description: 'Improve search engine rankings',
+      status: 'Completed Projects'
+    }
+  ]);
+
   const [newProject, setNewProject] = useState({ title: '', description: '' });
 
-  const columns = ['New Projects', 'In Progress', 'Completed Projects'];
-
   const addProject = () => {
-    if (!newProject.title) return;
+    if (!newProject.title.trim()) return;
 
-    const project = {
+    const project: Project = {
       id: String(Date.now()),
       title: newProject.title,
       description: newProject.description,
       status: 'New Projects'
     };
 
-    setProjects([...projects, project]);
+    setProjects(prev => [...prev, project]);
     setNewProject({ title: '', description: '' });
   };
 
-  const moveProject = (projectId, newStatus) => {
-    setProjects(projects.map(project => 
-      project.id === projectId 
-        ? { ...project, status: newStatus } 
-        : project
-    ));
+  const moveProject = (projectId: string, newStatus: string) => {
+    setProjects(prev =>
+      prev.map(project =>
+        project.id === projectId ? { ...project, status: newStatus } : project
+      )
+    );
   };
 
-  const deleteProject = (projectId) => {
-    setProjects(projects.filter(project => project.id !== projectId));
+  const deleteProject = (projectId: string) => {
+    setProjects(prev => prev.filter(project => project.id !== projectId));
   };
 
   return (
-    <div className="p-4 bg-gray-50 min-h-screen">
+    <div className="p-4 bg-background min-h-screen">
       <div className="flex space-x-4 mb-4">
-        <input 
+        <input
           type="text"
           placeholder="Project Title"
           value={newProject.title}
-          onChange={(e) => setNewProject({...newProject, title: e.target.value})}
+          onChange={(e) => setNewProject(prev => ({ ...prev, title: e.target.value }))}
           className="flex-grow p-2 border rounded"
         />
-        <input 
+        <input
           type="text"
           placeholder="Project Description"
           value={newProject.description}
-          onChange={(e) => setNewProject({...newProject, description: e.target.value})}
+          onChange={(e) => setNewProject(prev => ({ ...prev, description: e.target.value }))}
           className="flex-grow p-2 border rounded"
         />
         <Button onClick={addProject} className="flex items-center">
@@ -90,26 +95,26 @@ const KanbanBoard = () => {
               {projects
                 .filter(project => project.status === column)
                 .map(project => (
-                  <div 
-                    key={project.id} 
-                    className="bg-white p-3 rounded shadow mb-2 flex justify-between items-center"
+                  <div
+                    key={project.id}
+                    className="bg-card p-3 rounded-md shadow-sm mb-2 flex justify-between items-center"
                   >
                     <div>
                       <h3 className="font-bold">{project.title}</h3>
-                      <p className="text-sm text-gray-600">{project.description}</p>
+                      <p className="text-sm text-muted-foreground">{project.description}</p>
                     </div>
                     <div className="flex space-x-2">
                       {column !== 'Completed Projects' && (
-                        <Button 
-                          variant="outline" 
+                        <Button
+                          variant="outline"
                           size="sm"
                           onClick={() => moveProject(project.id, columns[columns.indexOf(column) + 1])}
                         >
                           Move
                         </Button>
                       )}
-                      <Button 
-                        variant="destructive" 
+                      <Button
+                        variant="destructive"
                         size="sm"
                         onClick={() => deleteProject(project.id)}
                       >
