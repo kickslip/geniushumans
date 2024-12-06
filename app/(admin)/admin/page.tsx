@@ -17,6 +17,8 @@ export default async function AdminPage() {
       <Sidebar session={session} />
       <main className="flex-1 overflow-y-auto p-4 space-y-4">
         <AdminPanel />
+        <KanbanBoard />
+        <ContactFormMessages />
       </main>
     </div>
   );
