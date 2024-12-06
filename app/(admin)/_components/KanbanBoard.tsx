@@ -59,7 +59,7 @@ const KanbanBoard = () => {
   };
 
   return (
-    <div className="p-4 bg-gray-50 min-h-screen">
+    <div className="p-4 bg-secondary/30 min-h-screen">
       <div className="flex space-x-4 mb-4">
         <input 
           type="text"
@@ -95,7 +95,7 @@ const KanbanBoard = () => {
                     className="bg-white p-3 rounded shadow mb-2 flex justify-between items-center"
                   >
                     <div>
-                      <h3 className="font-bold">{project.title}</h3>
+                      <h3 className="font-bold text-black">{project.title}</h3>
                       <p className="text-sm text-gray-600">{project.description}</p>
                     </div>
                     <div className="flex space-x-2">
