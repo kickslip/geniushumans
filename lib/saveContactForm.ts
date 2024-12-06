@@ -1,11 +1,8 @@
 "use server";
 
 import { z } from "zod";
-<<<<<<< HEAD
 import  prisma  from "@prisma/client";
-=======
 import { db } from "./db";
->>>>>>> 5bd25bb82bb7f326d65024d866f9636c3378e99e
 
 const ContactFormSchema = z.object({
   fullName: z.string().min(2, "Name must be at least 2 characters"),

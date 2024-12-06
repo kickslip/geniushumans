@@ -133,10 +133,6 @@ model ContactForm {
   package     String
   message     String
   submittedAt DateTime @default(now())
-<<<<<<< HEAD
-   @@map("ContactForm")
-=======
 
   @@map("contactForm")
->>>>>>> 5bd25bb82bb7f326d65024d866f9636c3378e99e
 }

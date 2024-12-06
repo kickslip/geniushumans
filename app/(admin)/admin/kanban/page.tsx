@@ -1,7 +1,7 @@
 import { validateRequest } from "@/auth";
 import Sidebar from "../../_components/Sidebar";
-import KanbanBoard from "./KanbanBoard";
 import { redirect } from "next/navigation";
+import KanbanBoard from "../../_components/KanbanBoard";
 
 
 export default async function KanbanPage() {

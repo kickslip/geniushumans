@@ -99,7 +99,7 @@ const BookingComponent: React.FC = () => {
   const maxBookingDate = addDays(today, 30); // Match BOOKING_WINDOW_DAYS from server action
 
   return (
-    <div className="max-w-md mx-auto p-6 bg-white shadow-md rounded-lg">
+    <div className="max-w-md mx-auto p-6 bg-secondary/30 shadow-md rounded-lg">
       <h2 className="text-2xl font-bold mb-6 text-center">Book an Appointment</h2>
       
       <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
@@ -122,7 +122,7 @@ const BookingComponent: React.FC = () => {
                   { before: today },
                   { after: maxBookingDate }
                 ]}
-                className="rounded-md border"
+                className="rounded-md border "
               />
             )}
           />
