@@ -1,7 +1,7 @@
 // lib/booking-management-actions.ts
 "use server";
 
-import { db } from "./db";
+import { prisma } from '@/prisma/client';
 import { revalidatePath } from "next/cache";
 import { z } from "zod";
 import { BookingStatus } from "@prisma/client";
@@ -32,7 +32,7 @@ export async function getDetailedBookings(
     const endDate = new Date(year, monthNum, 0);
 
     // Fetch detailed bookings
-    const bookings = await db.booking.findMany({
+    const bookings = await prisma.booking.findMany({
       where: {
         date: {
           gte: startDate,
@@ -93,7 +93,7 @@ export async function updateBookingStatus(
     const { id, status, consultant, message } = validatedFields.data;
 
     // Update booking
-    const updatedBooking = await db.booking.update({
+    const updatedBooking = await prisma.booking.update({
       where: { id },
       data: {
         ...(status ? { status } : {}),
@@ -121,7 +121,7 @@ export async function updateBookingStatus(
 
 export async function deleteBooking(bookingId: string) {
   try {
-    await db.booking.delete({
+    await prisma.booking.delete({
       where: { id: bookingId }
     });
 
@@ -143,14 +143,14 @@ export async function deleteBooking(bookingId: string) {
 
 export async function getBookingSummary() {
   try {
-    const totalBookings = await db.booking.count();
-    const pendingBookings = await db.booking.count({
+    const totalBookings = await prisma.booking.count();
+    const pendingBookings = await prisma.booking.count({
       where: { status: 'PENDING' }
     });
-    const confirmedBookings = await db.booking.count({
+    const confirmedBookings = await prisma.booking.count({
       where: { status: 'CONFIRMED' }
     });
-    const cancelledBookings = await db.booking.count({
+    const cancelledBookings = await prisma.booking.count({
       where: { status: 'CANCELLED' }
     });
 

@@ -1,6 +1,6 @@
 "use client"
-import { useState } from 'react';
-import { db } from '@/lib/db';
+import { useState, useEffect } from 'react';
+import { prisma } from '@/prisma/client';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { ScrollArea } from '@/components/ui/scroll-area';
@@ -9,7 +9,7 @@ import { formatDistance } from 'date-fns';
 
 async function getAllContactFormMessages() {
   try {
-    return await db.contactForm.findMany({
+    return await prisma.contactForm.findMany({
       orderBy: { submittedAt: 'desc' }
     });
   } catch (error) {
@@ -23,14 +23,14 @@ export default function ContactFormMessages() {
   const [currentPage, setCurrentPage] = useState(1);
   const [messagesPerPage] = useState(5);
 
-  const fetchMessages = async () => {
-    const allMessages = await getAllContactFormMessages();
-    setMessages(allMessages);
-  };
+  useEffect(() => {
+    const fetchMessages = async () => {
+      const allMessages = await getAllContactFormMessages();
+      setMessages(allMessages);
+    };
 
-  if (messages.length === 0) {
     fetchMessages();
-  }
+  }, []);
 
   const indexOfLastMessage = currentPage * messagesPerPage;
   const indexOfFirstMessage = indexOfLastMessage - messagesPerPage;

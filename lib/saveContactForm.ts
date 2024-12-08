@@ -1,8 +1,7 @@
 "use server";
 
 import { z } from "zod";
-import  prisma  from "@prisma/client";
-import { db } from "./db";
+import { prisma } from '@/prisma/client';
 
 const ContactFormSchema = z.object({
   fullName: z.string().min(2, "Name must be at least 2 characters"),
@@ -26,7 +25,7 @@ export async function saveContactForm(formData: z.infer<typeof ContactFormSchema
     }
 
     // Save to database
-    await db.contactForm.create({
+    await prisma.contactForm.create({
       data: {
         fullName: formData.fullName,
         email: formData.email,

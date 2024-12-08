@@ -4,7 +4,7 @@
 import { z } from "zod";
 import { format, parseISO, addDays } from "date-fns";
 import { revalidatePath } from "next/cache";
-import { db } from "./db";
+import { prisma } from '@/prisma/client';
 
 // Constants
 const BUSINESS_HOURS = {
@@ -47,7 +47,7 @@ export async function getAvailableTimeSlots(
   );
 
   // Check existing bookings for this date and consultant
-  const bookedSlots = await db.booking.findMany({
+  const bookedSlots = await prisma.booking.findMany({
     where: {
       date: {
         gte: new Date(bookingDate.setHours(0, 0, 0, 0)),
@@ -109,7 +109,7 @@ export async function createBooking(prevState: any, formData: FormData) {
     }
 
     // Check consultant availability for this time slot
-    const existingBookings = await db.booking.count({
+    const existingBookings = await prisma.booking.count({
       where: {
         date,
         time,
@@ -128,7 +128,7 @@ export async function createBooking(prevState: any, formData: FormData) {
     }
 
     // Create or find user
-    const user = await db.user.upsert({
+    const user = await prisma.user.upsert({
       where: { email },
       update: {},
       create: {
@@ -140,7 +140,7 @@ export async function createBooking(prevState: any, formData: FormData) {
     });
 
     // Create booking
-    const booking = await db.booking.create({
+    const booking = await prisma.booking.create({
       data: {
         userId: user.id,
         date,

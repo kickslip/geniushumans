@@ -3,9 +3,7 @@
 import { z } from "zod";
 import { format } from "date-fns";
 import { revalidatePath } from "next/cache";
-import { db } from "./db";
-import { BookingStatus } from "@prisma/client";
-
+import { prisma } from '@/prisma/client';
 // Constants
 const BUSINESS_HOURS = {
   start: 9, // 9 AM
@@ -35,67 +33,73 @@ const BookingSchema = z.object({
 export async function getBookingSummary(month?: string) {
   try {
     // If no month is provided, use current month
-    const targetMonth = month || format(new Date(), 'yyyy-MM');
+    const targetMonth = month || format(new Date(), "yyyy-MM");
 
     // Parse the month string
-    const [year, monthNum] = targetMonth.split('-').map(Number);
+    const [year, monthNum] = targetMonth.split("-").map(Number);
 
     // Create date range for the specified month
     const startDate = new Date(year, monthNum - 1, 1);
     const endDate = new Date(year, monthNum, 0);
 
     // Fetch bookings grouped by status
-    const bookingStats = await db.booking.groupBy({
-      by: ['status'],
+    const bookingStats = await prisma.booking.groupBy({
+      by: ["status"],
       where: {
         date: {
           gte: startDate,
-          lte: endDate
-        }
+          lte: endDate,
+        },
       },
       _count: {
-        id: true
-      }
+        id: true,
+      },
     });
 
     // Transform results into a more readable format
-    const summary = bookingStats.reduce((acc, booking) => {
-      switch (booking.status) {
-        case 'PENDING':
-          acc.pendingBookings = booking._count.id;
-          break;
-        case 'CONFIRMED':
-          acc.confirmedBookings = booking._count.id;
-          break;
-        default:
-          break;
+    const summary = bookingStats.reduce(
+      (acc, booking) => {
+        switch (booking.status) {
+          case "PENDING":
+            acc.pendingBookings = booking._count.id;
+            break;
+          case "CONFIRMED":
+            acc.confirmedBookings = booking._count.id;
+            break;
+          default:
+            break;
+        }
+        acc.totalBookings = (acc.totalBookings || 0) + booking._count.id;
+        return acc;
+      },
+      {
+        totalBookings: 0,
+        pendingBookings: 0,
+        confirmedBookings: 0,
       }
-      acc.totalBookings = (acc.totalBookings || 0) + booking._count.id;
-      return acc;
-    }, {
-      totalBookings: 0,
-      pendingBookings: 0,
-      confirmedBookings: 0
-    });
+    );
 
     return summary;
   } catch (error) {
-    console.error('Failed to fetch booking summary:', error);
+    console.error("Failed to fetch booking summary:", error);
     return {
       totalBookings: 0,
       pendingBookings: 0,
-      confirmedBookings: 0
+      confirmedBookings: 0,
     };
   }
 }
 
-export async function getBookingSummaryByConsultant(consultantId?: string, month?: string) {
+export async function getBookingSummaryByConsultant(
+  consultantId?: string,
+  month?: string
+) {
   try {
     // If no month is provided, use current month
-    const targetMonth = month || format(new Date(), 'yyyy-MM');
+    const targetMonth = month || format(new Date(), "yyyy-MM");
 
     // Parse the month string
-    const [year, monthNum] = targetMonth.split('-').map(Number);
+    const [year, monthNum] = targetMonth.split("-").map(Number);
 
     // Create date range for the specified month
     const startDate = new Date(year, monthNum - 1, 1);
@@ -105,18 +109,18 @@ export async function getBookingSummaryByConsultant(consultantId?: string, month
     const whereClause = {
       date: {
         gte: startDate,
-        lte: endDate
+        lte: endDate,
       },
-      ...(consultantId ? { consultant: consultantId } : {})
+      ...(consultantId ? { consultant: consultantId } : {}),
     };
 
     // Fetch bookings grouped by consultant and status
-    const consultantBookings = await db.booking.groupBy({
-      by: ['consultant', 'status'],
+    const consultantBookings = await prisma.booking.groupBy({
+      by: ["consultant", "status"],
       where: whereClause,
       _count: {
-        id: true
-      }
+        id: true,
+      },
     });
 
     // Transform the results into a more readable format
@@ -125,16 +129,16 @@ export async function getBookingSummaryByConsultant(consultantId?: string, month
         acc[booking.consultant] = {
           total: 0,
           pending: 0,
-          confirmed: 0
+          confirmed: 0,
         };
       }
 
       const count = booking._count.id;
       acc[booking.consultant].total += count;
 
-      if (booking.status === 'PENDING') {
+      if (booking.status === "PENDING") {
         acc[booking.consultant].pending += count;
-      } else if (booking.status === 'CONFIRMED') {
+      } else if (booking.status === "CONFIRMED") {
         acc[booking.consultant].confirmed += count;
       }
 
@@ -143,7 +147,7 @@ export async function getBookingSummaryByConsultant(consultantId?: string, month
 
     return summary;
   } catch (error) {
-    console.error('Failed to fetch consultant booking summary:', error);
+    console.error("Failed to fetch consultant booking summary:", error);
     return {};
   }
 }
@@ -151,16 +155,16 @@ export async function getBookingSummaryByConsultant(consultantId?: string, month
 // Optional: If you need a more generic summary method
 export async function getOverallBookingSummary() {
   try {
-    const bookingSummary = await db.booking.groupBy({
-      by: ['status'],
+    const bookingSummary = await prisma.booking.groupBy({
+      by: ["status"],
       _count: {
-        id: true
-      }
+        id: true,
+      },
     });
 
-    return bookingSummary.map(booking => ({
+    return bookingSummary.map((booking) => ({
       status: booking.status,
-      count: booking._count.id
+      count: booking._count.id,
     }));
   } catch (error) {
     console.error("Error fetching overall booking summary:", error);

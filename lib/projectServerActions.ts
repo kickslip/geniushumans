@@ -1,6 +1,6 @@
 "use server";
 
-import { db } from "@/lib/db";
+import { prisma } from '@/prisma/client';
 import { revalidatePath } from "next/cache";
 import { z } from "zod";
 
@@ -37,7 +37,7 @@ export async function createProject(formData: FormData) {
     }
 
     // Create project
-    const project = await db.project.create({
+    const project = await prisma.project.create({
       data: {
         title: validatedFields.data.title,
         description: validatedFields.data.description,
@@ -80,7 +80,7 @@ export async function updateProjectStatus(formData: FormData) {
     const { id, status } = validatedFields.data;
 
     // Update project status
-    const updatedProject = await db.project.update({
+    const updatedProject = await prisma.project.update({
       where: { id },
       data: { status }
     });
@@ -107,7 +107,7 @@ export async function deleteProject(formData: FormData) {
     const id = formData.get('id') as string;
 
     // Delete project
-    await db.project.delete({
+    await prisma.project.delete({
       where: { id }
     });
 
@@ -129,7 +129,7 @@ export async function deleteProject(formData: FormData) {
 
 export async function fetchProjects(userId: string) {
   try {
-    const projects = await db.project.findMany({
+    const projects = await prisma.project.findMany({
       where: { userId },
       orderBy: { createdAt: 'desc' }
     });

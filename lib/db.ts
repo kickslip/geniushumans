@@ -1,22 +1,37 @@
-// lib/db.ts
+// db.ts
 import { PrismaClient } from '@prisma/client'
 
-const prismaClientOptions = {
-  log: process.env.NODE_ENV === 'development' 
-    ? ['query', 'info', 'warn', 'error'] 
-    : ['warn', 'error']
-}
+const prisma = new PrismaClient({
+  log: [
+    {
+      emit: 'event',
+      level: 'query',
+    },
+    {
+      emit: 'stdout',
+      level: 'error',
+    },
+    {
+      emit: 'stdout',
+      level: 'info',
+    },
+    {
+      emit: 'stdout',
+      level: 'warn',
+    },
+  ],
+})
 
-const createPrismaClient = () => {
-  return new PrismaClient(prismaClientOptions)
-}
+// Add query logging
+prisma.$on('query', (event) => {
+  console.log(`Query: ${event.query}`)
+  console.log(`Params: ${event.params}`)
+  console.log(`Duration: ${event.duration}ms`)
+})
 
-type GlobalThisWithPrisma = typeof globalThis & {
-  prisma?: ReturnType<typeof createPrismaClient>
-}
+// // Add error handling
+// prisma.$on('error', (err) => {
+//   console.error('Prisma client error:', err)
+// })
 
-const globalForPrisma = global as GlobalThisWithPrisma
-
-export const db = globalForPrisma.prisma || createPrismaClient()
-
-if (process.env.NODE_ENV !== 'production') globalForPrisma.prisma = db
+export default prisma
