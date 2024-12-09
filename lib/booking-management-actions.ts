@@ -9,7 +9,7 @@ import { BookingStatus } from "@prisma/client";
 // Validation schema for booking update
 const BookingUpdateSchema = z.object({
   id: z.string().uuid(),
-  status: z.enum(['PENDING', 'CONFIRMED', 'CANCELLED']).optional(),
+  status: z.nativeEnum(BookingStatus).optional(),
   consultant: z.string().optional(),
   message: z.string().optional(),
   company: z.string().optional(),
@@ -76,10 +76,8 @@ export async function updateBookingStatus(
 ) {
   try {
     const validatedFields = BookingUpdateSchema.safeParse({
-      id: formData.get('id'),
-      status: formData.get('status') as any,
-      consultant: formData.get('consultant') as string | undefined,
-      message: formData.get('message') as string | undefined
+      id: formData.get('id')?.toString(),
+      status: formData.get('status')?.toString() as BookingStatus | undefined,
     });
 
     if (!validatedFields.success) {
@@ -90,15 +88,13 @@ export async function updateBookingStatus(
       };
     }
 
-    const { id, status, consultant, message } = validatedFields.data;
+    const { id, status } = validatedFields.data;
 
     // Update booking
     const updatedBooking = await prisma.booking.update({
       where: { id },
       data: {
-        ...(status ? { status } : {}),
-        ...(consultant ? { consultant } : {}),
-        ...(message ? { message } : {})
+        status: status
       }
     });
 
@@ -118,7 +114,6 @@ export async function updateBookingStatus(
     };
   }
 }
-
 export async function deleteBooking(bookingId: string) {
   try {
     await prisma.booking.delete({

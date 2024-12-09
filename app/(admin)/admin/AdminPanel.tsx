@@ -16,12 +16,8 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@
 import { Toaster, toast } from 'sonner';
 
 // Import server actions
-import { 
-  getDetailedBookings, 
-  updateBookingStatus, 
-  deleteBooking 
-} from '@/lib/booking-management-actions';
 import { getBookingSummary, getBookingSummaryByConsultant } from '@/lib/booking-actions';
+import { deleteBooking, getDetailedBookings, updateBookingStatus } from '@/lib/booking-management-actions';
 
 // Define types
 interface BookingDetails {
@@ -122,6 +118,13 @@ const AdminPanel: React.FC = () => {
         setBookings(updatedBookings);
         // Close modal
         setIsDetailsModalOpen(false);
+        
+        // Refresh booking summary
+        const summary = await getBookingSummary(selectedMonth);
+        setBookingSummary(summary);
+
+        const consultantSummaryData = await getBookingSummaryByConsultant(selectedMonth);
+        setConsultantSummary(consultantSummaryData);
       } else {
         toast.error(result.message || 'Failed to update booking status');
       }
@@ -145,6 +148,13 @@ const AdminPanel: React.FC = () => {
         setBookings(updatedBookings);
         // Close modal
         setIsDetailsModalOpen(false);
+
+        // Refresh booking summary
+        const summary = await getBookingSummary(selectedMonth);
+        setBookingSummary(summary);
+
+        const consultantSummaryData = await getBookingSummaryByConsultant(selectedMonth);
+        setConsultantSummary(consultantSummaryData);
       } else {
         toast.error(result.message || 'Failed to delete booking');
       }
