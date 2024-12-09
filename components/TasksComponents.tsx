@@ -1,174 +1,219 @@
-"use client";
+"use client"
 
-import React from "react";
-import { useState, useTransition } from "react";
-import { Calendar } from "lucide-react";
-import { toast } from "sonner";
-import { Button } from "@/components/ui/button";
-import {
-  Dialog,
-  DialogContent,
-  DialogFooter,
-  DialogHeader,
-  DialogTitle,
-  DialogTrigger,
-} from "@/components/ui/dialog";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
-import { Input } from "@/components/ui/input";
-import { Textarea } from "@/components/ui/textarea";
-import { Label } from "@/components/ui/label";
-import { createTask } from "@/app/task/actions";
+import React, { useState, useEffect } from 'react';
+import { Plus, Pencil, Trash2 } from 'lucide-react';
+import { Card, CardContent, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { Textarea } from '@/components/ui/textarea';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { createTask, deleteTask, getTasks, updateTask } from '@/app/task/actions';
 
-const CreateTaskForm = () => {
-  const [open, setOpen] = useState(false);
-  const [isPending, startTransition] = useTransition();
-
-  const [formData, setFormData] = useState<{
-    title: string;
-    description: string;
-    dueDate: string;
-    priority: "low" | "medium" | "high";
-  }>({
-    title: "",
-    description: "",
-    dueDate: "",
-    priority: "medium",
+const TaskBoard = () => {
+  const [tasks, setTasks] = useState([]);
+  const [isCreating, setIsCreating] = useState(false);
+  const [editingTask, setEditingTask] = useState(null);
+  const [formData, setFormData] = useState({
+    title: '',
+    description: '',
+    dueDate: '',
+    priority: 'medium'
   });
 
-  const handleSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
-
-    startTransition(async () => {
+  useEffect(() => {
+    const loadTasks = async () => {
       try {
-        await createTask(formData);
-        toast.success("Task created successfully");
-        setFormData({
-          title: "",
-          description: "",
-          dueDate: "",
-          priority: "medium",
-        });
-        setOpen(false);
+        const fetchedTasks = await getTasks();
+        setTasks(fetchedTasks);
       } catch (error) {
-        toast.error("Failed to create task");
+        console.error('Error fetching tasks:', error);
       }
+    };
+    loadTasks();
+  }, []);
+
+  const handleSubmit = async (e: { preventDefault: () => void; }) => {
+    e.preventDefault();
+    if (!formData.title || !formData.description || !formData.dueDate) {
+      alert('Please fill out all fields');
+      return;
+    }
+
+    try {
+      if (editingTask) {
+        await updateTask({ id: editingTask.id, ...formData });
+      } else {
+        await createTask(formData);
+      }
+      const updatedTasks = await getTasks();
+      setTasks(updatedTasks);
+      resetForm();
+    } catch (error) {
+      console.error('Failed to save task:', error);
+    }
+  };
+
+  const handleDelete = async (taskId) => {
+    if (!window.confirm('Are you sure you want to delete this task?')) return;
+
+    try {
+      await deleteTask(taskId);
+      const updatedTasks = await getTasks();
+      setTasks(updatedTasks);
+    } catch (error) {
+      console.error('Failed to delete task:', error);
+    }
+  };
+
+  const resetForm = () => {
+    setFormData({
+      title: '',
+      description: '',
+      dueDate: '',
+      priority: 'medium'
     });
+    setIsCreating(false);
+    setEditingTask(null);
   };
 
-  const handleChange = (
-    e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>
-  ) => {
-    const { name, value } = e.target;
-    setFormData((prev) => ({ ...prev, [name]: value }));
+  const startEdit = (task) => {
+    setEditingTask(task);
+    setFormData({
+      title: task.title,
+      description: task.description,
+      dueDate: task.dueDate,
+      priority: task.priority
+    });
+    setIsCreating(false);
   };
 
-  const handlePriorityChange = (value: "low" | "medium" | "high") => {
-    setFormData((prev) => ({ ...prev, priority: value }));
+  const getPriorityColor = (priority) => {
+    switch (priority) {
+      case 'high':
+        return 'text-red-500';
+      case 'medium':
+        return 'text-yellow-500';
+      case 'low':
+        return 'text-green-500';
+      default:
+        return '';
+    }
   };
 
   return (
-    <Dialog
-      open={open}
-      onOpenChange={(newOpen) => {
-        if (!newOpen) {
-          setFormData({
-            title: "",
-            description: "",
-            dueDate: "",
-            priority: "medium",
-          });
-        }
-        setOpen(newOpen);
-      }}
-    >
-      <DialogTrigger asChild>
-        <Button>Create New Task</Button>
-      </DialogTrigger>
-      <DialogContent
-        className={`sm:max-w-[425px] ${isPending ? "opacity-50" : ""}`}
-      >
-        <form onSubmit={handleSubmit} className="space-y-4">
-          <div className="space-y-2">
-            <Label htmlFor="title">Title</Label>
-            <Input
-              id="title"
-              name="title"
-              placeholder="Enter task title"
-              value={formData.title}
-              onChange={handleChange}
-              required
-            />
-          </div>
+    <div className="p-4 max-w-6xl mx-auto">
+      <div className="flex justify-between items-center mb-6">
+        <Button
+          onClick={() => setIsCreating(true)}
+          className="flex items-center gap-2"
+          disabled={isCreating || editingTask}
+        >
+          <Plus size={16} />
+          Add Task
+        </Button>
+      </div>
 
-          <div className="space-y-2">
-            <Label htmlFor="description">Description</Label>
-            <Textarea
-              id="description"
-              name="description"
-              placeholder="Enter task description"
-              value={formData.description}
-              onChange={handleChange}
-              required
-            />
-          </div>
+      {(isCreating || editingTask) && (
+        <Card className="mb-6">
+          <CardHeader>
+            <CardTitle>{editingTask ? 'Edit Task' : 'New Task'}</CardTitle>
+          </CardHeader>
+          <form onSubmit={handleSubmit}>
+            <CardContent className="space-y-4">
+              <div>
+                <Input
+                  placeholder="Task title"
+                  value={formData.title}
+                  onChange={(e) => setFormData({ ...formData, title: e.target.value })}
+                  required
+                />
+              </div>
+              <div>
+                <Textarea
+                  placeholder="Task description"
+                  value={formData.description}
+                  onChange={(e) => setFormData({ ...formData, description: e.target.value })}
+                  required
+                />
+              </div>
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <Input
+                    type="date"
+                    value={formData.dueDate}
+                    onChange={(e) => setFormData({ ...formData, dueDate: e.target.value })}
+                    required
+                  />
+                </div>
+                <div>
+                  <Select
+                    value={formData.priority}
+                    onValueChange={(value) => setFormData({ ...formData, priority: value })}
+                  >
+                    <SelectTrigger>
+                      <SelectValue placeholder="Select priority" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="low">Low</SelectItem>
+                      <SelectItem value="medium">Medium</SelectItem>
+                      <SelectItem value="high">High</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+              </div>
+            </CardContent>
+            <CardFooter className="flex justify-end gap-2">
+              <Button type="button" variant="outline" onClick={resetForm}>
+                Cancel
+              </Button>
+              <Button type="submit">
+                {editingTask ? 'Update' : 'Create'} Task
+              </Button>
+            </CardFooter>
+          </form>
+        </Card>
+      )}
 
-          <div className="space-y-2">
-            <Label htmlFor="dueDate">Due Date</Label>
-            <div className="relative">
-              <Input
-                id="dueDate"
-                name="dueDate"
-                type="date"
-                value={formData.dueDate}
-                onChange={handleChange}
-                required
-                className="pl-10"
-              />
-              <Calendar className="absolute left-3 top-2.5 h-4 w-4 text-muted-foreground" />
-            </div>
-          </div>
-
-          <div className="space-y-2">
-            <Label htmlFor="priority">Priority</Label>
-            <Select
-              name="priority"
-              value={formData.priority}
-              onValueChange={handlePriorityChange}
-            >
-              <SelectTrigger>
-                <SelectValue placeholder="Select priority" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="low">Low</SelectItem>
-                <SelectItem value="medium">Medium</SelectItem>
-                <SelectItem value="high">High</SelectItem>
-              </SelectContent>
-            </Select>
-          </div>
-
-          <DialogFooter>
-            <Button
-              type="button"
-              variant="outline"
-              onClick={() => setOpen(false)}
-              disabled={isPending}
-            >
-              Cancel
-            </Button>
-            <Button type="submit" disabled={isPending}>
-              {isPending ? "Creating..." : "Create Task"}
-            </Button>
-          </DialogFooter>
-        </form>
-      </DialogContent>
-    </Dialog>
+      <div className="grid grid-cols-1 gap-4">
+        {tasks.map((task) => (
+          <Card key={task.id} className="flex flex-col border">
+            <CardHeader>
+              <div className="flex justify-between items-start">
+                <CardTitle className="text-lg">{task.title}</CardTitle>
+                <div className="flex gap-2">
+                  <Button
+                    variant="ghost"
+                    size="icon"
+                    onClick={() => startEdit(task)}
+                    disabled={isCreating || editingTask}
+                  >
+                    <Pencil size={16} />
+                  </Button>
+                  <Button
+                    variant="ghost"
+                    size="icon"
+                    onClick={() => handleDelete(task.id)}
+                    disabled={isCreating || editingTask}
+                  >
+                    <Trash2 size={16} />
+                  </Button>
+                </div>
+              </div>
+            </CardHeader>
+            <CardContent className="flex-grow">
+              <p className="text-sm text-gray-600 mb-4">{task.description}</p>
+              <div className="flex justify-between items-center text-sm">
+                <span>Due: {new Date(task.dueDate).toLocaleDateString()}</span>
+                <span className={`font-semibold ${getPriorityColor(task.priority)}`}>
+                  {task.priority.charAt(0).toUpperCase() + task.priority.slice(1)}
+                </span>
+              </div>
+            </CardContent>
+          </Card>
+        ))}
+      </div>
+    </div>
   );
 };
 
-export default CreateTaskForm;
+export default TaskBoard;

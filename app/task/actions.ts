@@ -1,92 +1,222 @@
-'use server'
+"use server";
 
-import { CreateTaskInput, Task, UpdateTaskInput } from '@/lib/types';
-import { revalidatePath } from 'next/cache';
+import { revalidatePath } from "next/cache";
+import { z } from "zod";
+import db from "@/lib/db";
 
-// Simulated database for demonstration
-const tasks: Task[] = [];
+// Schema definitions
+const TaskSchema = z.object({
+  title: z.string().min(1, "Title is required").max(100),
+  description: z.string().min(1, "Description is required").max(500),
+  dueDate: z.string().min(1, "Due date is required"),
+  priority: z.enum(["low", "medium", "high"]),
+});
 
-export async function createTask(input: CreateTaskInput): Promise<Task> {
+const UpdateTaskSchema = z.object({
+  id: z.string().min(1),
+  title: z.string().min(1, "Title is required").max(100).optional(),
+  description: z.string().min(1, "Description is required").max(500).optional(),
+  dueDate: z.string().min(1, "Due date is required").optional(),
+  priority: z.enum(["low", "medium", "high"]).optional(),
+});
+
+export type CreateTaskInput = z.infer<typeof TaskSchema>;
+export type UpdateTaskInput = z.infer<typeof UpdateTaskSchema>;
+
+// Helper function to get or create default user
+async function getDefaultUser() {
+  const defaultUser = await db.user.findFirst();
+  
+  if (!defaultUser) {
+    return await db.user.create({
+      data: {
+        name: 'Default User',
+        email: 'default@example.com',
+      }
+    });
+  }
+
+  return defaultUser;
+}
+
+// Helper function to get or create default board
+async function getDefaultBoard() {
+  const defaultUser = await getDefaultUser();
+  
+  let defaultBoard = await db.board.findFirst({
+    where: { userId: defaultUser.id },
+    include: {
+      Columns: {
+        orderBy: { order: 'asc' },
+      },
+    },
+  });
+
+  if (!defaultBoard) {
+    defaultBoard = await db.board.create({
+      data: {
+        name: "My Tasks",
+        userId: defaultUser.id,
+        Columns: {
+          create: [
+            { name: "To Do", order: 0 },
+            { name: "In Progress", order: 1 },
+            { name: "Done", order: 2 },
+          ],
+        },
+      },
+      include: {
+        Columns: {
+          orderBy: { order: 'asc' },
+        },
+      },
+    });
+  }
+
+  return defaultBoard;
+}
+
+export async function createTask(input: CreateTaskInput) {
   try {
-    const task: Task = {
-      id: Math.random().toString(36).substr(2, 9), // Simple ID generation
-      ...input,
-      status: 'pending',
-      createdAt: new Date().toISOString(),
-      updatedAt: new Date().toISOString(),
-    };
-    
-    tasks.push(task);
+    const validatedData = TaskSchema.parse(input);
+    const defaultBoard = await getDefaultBoard();
+    const todoColumn = defaultBoard.Columns[0];
+
+    // Use a transaction to ensure atomicity
+    const newCard = await db.$transaction(async (tx) => {
+      const highestOrder = await tx.card.findFirst({
+        where: { columnId: todoColumn.id },
+        orderBy: { order: 'desc' },
+        select: { order: true },
+      });
+
+      return await tx.card.create({
+        data: {
+          title: validatedData.title,
+          description: `${validatedData.description}\n\nPriority: ${validatedData.priority}\nDue Date: ${validatedData.dueDate}`,
+          columnId: todoColumn.id,
+          order: (highestOrder?.order ?? 0) + 1, // Changed from -1 to 0
+        },
+      });
+    });
+
     revalidatePath('/tasks');
-    return task;
-  } catch (error: unknown) {
-    if (error instanceof Error) {
-      throw new Error(error.message);
+    revalidatePath('/board');
+    return newCard;
+
+  } catch (error) {
+    if (error instanceof z.ZodError) {
+      throw new Error(`Validation error: ${error.errors[0].message}`);
     }
-    throw new Error('Failed to create task');
+    throw error instanceof Error ? error : new Error('Failed to create task');
   }
 }
 
-export async function updateTask(input: UpdateTaskInput): Promise<Task> {
+export async function updateTask(input: UpdateTaskInput) {
   try {
-    const taskIndex = tasks.findIndex(t => t.id === input.id);
-    if (taskIndex === -1) {
+    const validatedData = UpdateTaskSchema.parse(input);
+
+    const existingCard = await db.card.findUnique({
+      where: { id: validatedData.id },
+    });
+
+    if (!existingCard) {
       throw new Error('Task not found');
     }
 
-    const updatedTask: Task = {
-      ...tasks[taskIndex],
-      ...input,
-      updatedAt: new Date().toISOString(),
-    };
+    const updatedCard = await db.card.update({
+      where: { id: validatedData.id },
+      data: {
+        title: validatedData.title,
+        description: validatedData.description
+          ? `${validatedData.description}\n\nPriority: ${validatedData.priority}\nDue Date: ${validatedData.dueDate}`
+          : undefined,
+      },
+    });
 
-    tasks[taskIndex] = updatedTask;
     revalidatePath('/tasks');
-    return updatedTask;
-  } catch (error: unknown) {
-    if (error instanceof Error) {
-      throw new Error(error.message);
+    revalidatePath('/board');
+    return updatedCard;
+
+  } catch (error) {
+    if (error instanceof z.ZodError) {
+      throw new Error(`Validation error: ${error.errors[0].message}`);
     }
-    throw new Error('Failed to update task');
+    throw error instanceof Error ? error : new Error('Failed to update task');
   }
 }
 
-export async function deleteTask(id: string): Promise<void> {
+export async function deleteTask(id: string) {
   try {
-    const taskIndex = tasks.findIndex(t => t.id === id);
-    if (taskIndex === -1) {
+    const existingCard = await db.card.findUnique({
+      where: { id },
+    });
+
+    if (!existingCard) {
       throw new Error('Task not found');
     }
 
-    tasks.splice(taskIndex, 1);
+    await db.card.delete({
+      where: { id },
+    });
+
     revalidatePath('/tasks');
-  } catch (error: unknown) {
-    if (error instanceof Error) {
-      throw new Error(error.message);
-    }
-    throw new Error('Failed to delete task');
+    revalidatePath('/board');
+
+  } catch (error) {
+    throw error instanceof Error ? error : new Error('Failed to delete task');
   }
 }
 
-export async function getTasks(): Promise<Task[]> {
+export async function getTasks() {
   try {
-    return tasks;
-  } catch (error: unknown) {
-    if (error instanceof Error) {
-      throw new Error(error.message);
-    }
-    throw new Error('Failed to fetch tasks');
+    const defaultBoard = await getDefaultBoard();
+
+    const cards = await db.card.findMany({
+      where: {
+        column: {
+          boardId: defaultBoard.id,
+        },
+      },
+      orderBy: { createdAt: 'desc' },
+    });
+
+    return cards.map(card => ({
+      id: card.id,
+      title: card.title,
+      description: card.description?.split('\n\n')[0] ?? '',
+      priority: (card.description?.match(/Priority: (low|medium|high)/) ?? [])[1] as 'low' | 'medium' | 'high' || 'medium',
+      dueDate: (card.description?.match(/Due Date: (.+)/) ?? [])[1] ?? '',
+      createdAt: card.createdAt.toISOString(),
+      updatedAt: card.updatedAt.toISOString(),
+    }));
+
+  } catch (error) {
+    throw error instanceof Error ? error : new Error('Failed to fetch tasks');
   }
 }
 
-export async function getTask(id: string): Promise<Task | null> {
+export async function getTask(id: string) {
   try {
-    const task = tasks.find(t => t.id === id);
-    return task || null;
-  } catch (error: unknown) {
-    if (error instanceof Error) {
-      throw new Error(error.message);
+    const card = await db.card.findUnique({
+      where: { id },
+    });
+
+    if (!card) {
+      return null;
     }
-    throw new Error('Failed to fetch task');
+
+    return {
+      id: card.id,
+      title: card.title,
+      description: card.description?.split('\n\n')[0] ?? '',
+      priority: (card.description?.match(/Priority: (low|medium|high)/) ?? [])[1] as 'low' | 'medium' | 'high' || 'medium',
+      dueDate: (card.description?.match(/Due Date: (.+)/) ?? [])[1] ?? '',
+      createdAt: card.createdAt.toISOString(),
+      updatedAt: card.updatedAt.toISOString(),
+    };
+
+  } catch (error) {
+    throw error instanceof Error ? error : new Error('Failed to fetch task');
   }
 }
