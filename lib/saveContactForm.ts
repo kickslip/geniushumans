@@ -14,7 +14,6 @@ const ContactFormSchema = z.object({
 
 export async function saveContactForm(formData: z.infer<typeof ContactFormSchema>) {
   try {
-    // Validate input
     const validatedFields = ContactFormSchema.safeParse(formData);
 
     if (!validatedFields.success) {
@@ -24,21 +23,13 @@ export async function saveContactForm(formData: z.infer<typeof ContactFormSchema
       };
     }
 
-    // Save to database
     await prisma.contactForm.create({
       data: {
-        fullName: formData.fullName,
-        email: formData.email,
-        mobile: formData.mobile,
-        country: formData.country,
-        package: formData.package,
-        message: formData.message,
+        ...formData,
       },
     });
 
-    return {
-      success: true,
-    };
+    return { success: true };
   } catch (error) {
     console.error("Contact form submission error:", error);
     return {

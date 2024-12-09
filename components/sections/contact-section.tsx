@@ -24,7 +24,11 @@ import {
 } from "@/components/ui/select";
 import { useState } from "react";
 import { saveContactForm } from "@/lib/saveContactForm";
- // You'll need to create this file
+
+// Define a type for the potential error response
+type FormError = {
+  [key: string]: string[] | undefined;
+};
 
 const formSchema = z.object({
   fullName: z.string().min(2, "Name must be at least 2 characters"),
@@ -75,12 +79,19 @@ export function ContactSection() {
 
     try {
       const result = await saveContactForm(values);
-      
+
       if (result.success) {
         setSubmitSuccess(true);
         form.reset(); // Reset the form on successful submission
       } else {
-        setSubmitError(result.error || "Failed to submit the form");
+        // Type-safe error extraction
+        const error = result.error as FormError;
+        const errorKeys = Object.keys(error);
+        const firstErrorMessage = errorKeys.length > 0 
+          ? error[errorKeys[0]]?.[0] 
+          : "Failed to submit the form";
+        
+        setSubmitError(firstErrorMessage || "Failed to submit the form");
       }
     } catch (error) {
       setSubmitError("An unexpected error occurred");
@@ -228,9 +239,9 @@ export function ContactSection() {
                 </div>
               )}
 
-              <Button 
-                type="submit" 
-                className="w-full" 
+              <Button
+                type="submit"
+                className="w-full"
                 disabled={isSubmitting}
               >
                 {isSubmitting ? "Sending..." : "Send Message"}
