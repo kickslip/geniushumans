@@ -7,33 +7,26 @@ import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import { Prisma, User } from "@prisma/client";
 
-type UserProfileSelect = {
-  id: true;
-  username: true;
-  createdAt: true;
-  updatedAt: true;
-};
-
 export async function signOut() {
-    const sessionId = cookies().get(lucia.sessionCookieName)?.value;
-    if (!sessionId) {
-        return {
-            error: "No active session"
-        };
-    }
-
     try {
+        const sessionId = cookies().get(lucia.sessionCookieName)?.value;
+        if (!sessionId) {
+            return {
+                error: "No active session"
+            };
+        }
+
         await lucia.invalidateSession(sessionId);
         const sessionCookie = lucia.createBlankSessionCookie();
         cookies().set(sessionCookie.name, sessionCookie.value, sessionCookie.attributes);
+
+        revalidatePath("/");
+        return { success: true };
     } catch (error) {
         return {
             error: "Failed to sign out"
         };
     }
-
-    revalidatePath("/");
-    redirect("/");
 }
 
 export async function updateProfile(
@@ -87,7 +80,7 @@ export async function deleteAccount(userId: string) {
         cookies().set(sessionCookie.name, sessionCookie.value, sessionCookie.attributes);
 
         revalidatePath("/");
-        redirect("/");
+        return { success: true };
     } catch (error) {
         return {
             error: "Failed to delete account"

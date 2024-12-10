@@ -1,7 +1,6 @@
 import { Metadata } from "next";
 import Link from "next/link";
 import LoginForm from "./LoginForm";
-import Image from "next/image";
 
 export const metadata: Metadata = {
   title: "Login",
@@ -28,6 +27,11 @@ export default function Page() {
         </div>
         {/* Right side: Image (hidden on mobile, shown on md and up) */}
         <div className="hidden md:flex w-1/2 items-center justify-center">
+          <img
+            src="/login.jpg" // Path to the image in the `public` folder
+            alt="Login"
+            className="h-full w-full object-cover" // Ensures the image fits nicely
+          />
         </div>
       </div>
     </main>

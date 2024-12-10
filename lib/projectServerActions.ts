@@ -1,148 +1,55 @@
 "use server";
 
-import { prisma } from '@/prisma/client';
+import { prisma } from "@/prisma/client";
 import { revalidatePath } from "next/cache";
 import { z } from "zod";
 
-// Validation schema for project creation
+// Schema for project validation
 const ProjectSchema = z.object({
   title: z.string().min(3, "Title must be at least 3 characters"),
   description: z.string().optional(),
   userId: z.string().uuid(),
 });
 
-// Validation schema for project update
-const ProjectUpdateSchema = z.object({
-  id: z.string().uuid(),
-  title: z.string().min(3, "Title must be at least 3 characters").optional(),
-  description: z.string().optional(),
-  status: z.enum(["NEW", "IN_PROGRESS", "COMPLETED"]).optional(),
-});
-
 export async function createProject(formData: FormData) {
   try {
-    // Validate input 
+    // Validate form data
     const validatedFields = ProjectSchema.safeParse({
-      title: formData.get('title'),
-      description: formData.get('description'),
-      userId: formData.get('userId'),
+      title: formData.get("title"),
+      description: formData.get("description"),
+      userId: formData.get("userId"),
     });
 
     if (!validatedFields.success) {
       return {
         success: false,
         message: "Invalid input",
-        errors: validatedFields.error.flatten().fieldErrors
+        errors: validatedFields.error.flatten().fieldErrors,
       };
     }
 
-    // Create project
+    // Create project in the database
     const project = await prisma.project.create({
       data: {
         title: validatedFields.data.title,
         description: validatedFields.data.description,
         userId: validatedFields.data.userId,
-      }
+      },
     });
 
-    // Revalidate path to refresh server-side rendering
-    revalidatePath('/projects');
+    // Revalidate the path to update the cache
+    revalidatePath("/projects");
 
     return {
       success: true,
       message: "Project created successfully",
-      project
+      project,
     };
   } catch (error) {
     console.error("Failed to create project:", error);
     return {
       success: false,
-      message: "Failed to create project"
-    };
-  }
-}
-
-export async function updateProjectStatus(formData: FormData) {
-  try {
-    const validatedFields = ProjectUpdateSchema.safeParse({
-      id: formData.get('id'),
-      status: formData.get('status') as any,
-    });
-
-    if (!validatedFields.success) {
-      return {
-        success: false,
-        message: "Invalid input",
-        errors: validatedFields.error.flatten().fieldErrors
-      };
-    }
-
-    const { id, status } = validatedFields.data;
-
-    // Update project status
-    const updatedProject = await prisma.project.update({
-      where: { id },
-      data: { status }
-    });
-
-    // Revalidate path to refresh server-side rendering
-    revalidatePath('/projects');
-
-    return {
-      success: true,
-      message: "Project status updated successfully",
-      project: updatedProject
-    };
-  } catch (error) {
-    console.error("Failed to update project status:", error);
-    return {
-      success: false,
-      message: "Failed to update project status"
-    };
-  }
-}
-
-export async function deleteProject(formData: FormData) {
-  try {
-    const id = formData.get('id') as string;
-
-    // Delete project
-    await prisma.project.delete({
-      where: { id }
-    });
-
-    // Revalidate path to refresh server-side rendering
-    revalidatePath('/projects');
-
-    return {
-      success: true,
-      message: "Project deleted successfully"
-    };
-  } catch (error) {
-    console.error("Failed to delete project:", error);
-    return {
-      success: false,
-      message: "Failed to delete project"
-    };
-  }
-}
-
-export async function fetchProjects(userId: string) {
-  try {
-    const projects = await prisma.project.findMany({
-      where: { userId },
-      orderBy: { createdAt: 'desc' }
-    });
-
-    return {
-      success: true,
-      projects
-    };
-  } catch (error) {
-    console.error("Failed to fetch projects:", error);
-    return {
-      success: false,
-      projects: []
+      message: "Failed to create project",
     };
   }
 }
