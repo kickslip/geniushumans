@@ -52,7 +52,20 @@ export async function fetchAllUsers(): Promise<FetchAllUsersResult> {
     // Revalidate the admin users page
     revalidatePath("/admin/update/user-role");
 
-    return { success: true, data: users };
+    return {
+      success: true,
+      data: users.map((user) => ({
+        id: user.id,
+        username: user.username,
+        email: user.email,
+        role: user.role,
+        createdAt: user.createdAt,
+        firstName: "", // Add default values for missing properties
+        lastName: "",
+        displayName: "",
+        companyName: "",
+      })),
+    };
   } catch (error) {
     console.error("Error fetching users:", error);
     return {

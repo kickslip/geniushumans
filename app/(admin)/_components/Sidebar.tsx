@@ -84,7 +84,7 @@ const Sidebar: React.FC<SidebarProps> = ({ className, session, onClose }) => {
       {
         section: "Messages",
         items: [
-          {href: "/messages", icon: Mail, label: "Messages", color: "beige"}
+          {href: "/messages", icon: Mail, label: "Messages", color: "black"}
         ]
       },
     ],
