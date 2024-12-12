@@ -10,3 +10,4 @@
 [*] 7. redirect on prices need to be a scrolldown to packages
 [*] 8. loading spinner on book now and message component
 [] 9. confirmation on the delete button on the the admin booking
+[] 10. Add messaging for  user that connects to messages comp in admin
