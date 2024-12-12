@@ -8,8 +8,14 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import { Trash2 } from "lucide-react"
 import { useToast } from "@/components/ui/use-toast"
 
+interface TeamMember {
+  id: number;
+  name: string;
+  role: string;
+}
+
 const TeamTable = () => {
-  const [team, setTeam] = useState([])
+  const [team, setTeam] = useState<TeamMember[]>([])
   const [name, setName] = useState("")
   const [role, setRole] = useState("")
   const { toast } = useToast()
@@ -34,7 +40,7 @@ const TeamTable = () => {
     })
   }
 
-  const removeMember = (id) => {
+  const removeMember = (id: number) => {
     setTeam(team.filter((member) => member.id !== id))
     toast({
       title: "Member Removed",
@@ -87,7 +93,7 @@ const TeamTable = () => {
               </TableRow>
             </TableHeader>
             <TableBody>
-              {team.map((member) => (
+              {team.map((member: TeamMember) => (
                 <TableRow key={member.id}>
                   <TableCell>{member.id}</TableCell>
                   <TableCell>{member.name}</TableCell>
