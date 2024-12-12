@@ -99,14 +99,14 @@ export default function LoginForm() {
           </LoadingButton>
 
           {/* Fixed Forgot Password Link */}
-          <div className="text-center">
+          {/* <div className="text-center">
             <Link
               href="/forgot-password"
               className="inline-block px-4 py-2 text-sm text-blue-500 hover:text-blue-700 hover:underline"
             >
               Forgot password?
             </Link>
-          </div>
+          </div> */}
         </div>
       </form>
     </Form>

@@ -108,7 +108,7 @@ const RegistrationForm = () => {
             name="phoneNumber"
             render={({ field }) => (
               <FormItem>
-                <FormLabel className="flex items-center text-gray-700">
+                <FormLabel className="flex items-center ">
                   Phone Number
                 </FormLabel>
                 <FormControl>
