@@ -14,8 +14,8 @@ export default async function ProfilePage() {
   return (
     <>
       <ProfileComponent user={user} />
-      <UkanbanBoard />
-      <ProjectForm />
+      {/* <UkanbanBoard />
+      <ProjectForm /> */}
     </>
   );
 }
