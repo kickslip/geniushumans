@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useState, useEffect } from "react";
-import { Calendar, momentLocalizer } from "react-big-calendar";
+import { Calendar, momentLocalizer, View } from "react-big-calendar";
 import { format } from "date-fns";
 import moment from "moment";
 import "react-big-calendar/lib/css/react-big-calendar.css";
@@ -42,11 +42,10 @@ const localizer = momentLocalizer(moment);
 
 const CalendarPanel: React.FC = () => {
   const [bookings, setBookings] = useState<BookingDetails[]>([]);
-  const [selectedBooking, setSelectedBooking] = useState<BookingDetails | null>(
-    null
-  );
+  const [selectedBooking, setSelectedBooking] = useState<BookingDetails | null>(null);
   const [isDetailsModalOpen, setIsDetailsModalOpen] = useState(false);
-  
+  const [currentDate, setCurrentDate] = useState(new Date()); // Manage current date
+  const [view, setView] = useState<View>("month"); // Use `View` type from react-big-calendar
 
   // Fetch bookings
   useEffect(() => {
@@ -80,6 +79,16 @@ const CalendarPanel: React.FC = () => {
     }
   };
 
+  // Handle navigation
+  const handleNavigate = (date: Date) => {
+    setCurrentDate(date);
+  };
+
+  // Handle view change
+  const handleViewChange = (newView: View) => {
+    setView(newView);
+  };
+
   return (
     <div className="min-h-screen bg-background text-foreground p-8">
       <h1 className="text-3xl font-bold mb-8">Booking Calendar</h1>
@@ -90,6 +99,12 @@ const CalendarPanel: React.FC = () => {
         endAccessor="end"
         style={{ height: 500 }}
         onSelectEvent={handleSelectEvent}
+        views={["month", "week", "day", "agenda"]}
+        date={currentDate} // Controlled date
+        onNavigate={handleNavigate} // Handle navigation
+        view={view} // Controlled view
+        onView={handleViewChange} // Handle view changes
+        toolbar
       />
 
       {/* Booking Details Modal */}
@@ -104,7 +119,8 @@ const CalendarPanel: React.FC = () => {
             </DialogHeader>
             <div className="space-y-4">
               <div>
-                <strong>Date:</strong> {format(selectedBooking.date, "MMMM dd, yyyy")}
+                <strong>Date:</strong>{" "}
+                {format(selectedBooking.date, "MMMM dd, yyyy")}
               </div>
               <div>
                 <strong>Time:</strong> {selectedBooking.time}

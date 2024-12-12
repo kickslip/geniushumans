@@ -2,7 +2,8 @@
 
 import { revalidatePath } from "next/cache";
 import { z } from "zod";
-import db from "@/lib/db";
+import { prisma } from "@/prisma/client"
+
 
 // Schema definitions
 const TaskSchema = z.object({
@@ -25,10 +26,10 @@ export type UpdateTaskInput = z.infer<typeof UpdateTaskSchema>;
 
 // Helper function to get or create default user
 async function getDefaultUser() {
-  const defaultUser = await db.user.findFirst();
+  const defaultUser = await prisma.user.findFirst();
   
   if (!defaultUser) {
-    return await db.user.create({
+    return await prisma.user.create({
       data: {
         name: 'Default User',
         email: 'default@example.com',
@@ -43,7 +44,7 @@ async function getDefaultUser() {
 async function getDefaultBoard() {
   const defaultUser = await getDefaultUser();
   
-  let defaultBoard = await db.board.findFirst({
+  let defaultBoard = await prisma.board.findFirst({
     where: { userId: defaultUser.id },
     include: {
       Columns: {
@@ -53,7 +54,7 @@ async function getDefaultBoard() {
   });
 
   if (!defaultBoard) {
-    defaultBoard = await db.board.create({
+    defaultBoard = await prisma.board.create({
       data: {
         name: "My Tasks",
         userId: defaultUser.id,
@@ -83,7 +84,7 @@ export async function createTask(input: CreateTaskInput) {
     const todoColumn = defaultBoard.Columns[0];
 
     // Use a transaction to ensure atomicity
-    const newCard = await db.$transaction(async (tx) => {
+    const newCard = await prisma.$transaction(async (tx) => {
       const highestOrder = await tx.card.findFirst({
         where: { columnId: todoColumn.id },
         orderBy: { order: 'desc' },
@@ -116,7 +117,7 @@ export async function updateTask(input: UpdateTaskInput) {
   try {
     const validatedData = UpdateTaskSchema.parse(input);
 
-    const existingCard = await db.card.findUnique({
+    const existingCard = await prisma.card.findUnique({
       where: { id: validatedData.id },
     });
 
@@ -124,7 +125,7 @@ export async function updateTask(input: UpdateTaskInput) {
       throw new Error('Task not found');
     }
 
-    const updatedCard = await db.card.update({
+    const updatedCard = await prisma.card.update({
       where: { id: validatedData.id },
       data: {
         title: validatedData.title,
@@ -148,7 +149,7 @@ export async function updateTask(input: UpdateTaskInput) {
 
 export async function deleteTask(id: string) {
   try {
-    const existingCard = await db.card.findUnique({
+    const existingCard = await prisma.card.findUnique({
       where: { id },
     });
 
@@ -156,7 +157,7 @@ export async function deleteTask(id: string) {
       throw new Error('Task not found');
     }
 
-    await db.card.delete({
+    await prisma.card.delete({
       where: { id },
     });
 
@@ -172,7 +173,7 @@ export async function getTasks() {
   try {
     const defaultBoard = await getDefaultBoard();
 
-    const cards = await db.card.findMany({
+    const cards = await prisma.card.findMany({
       where: {
         column: {
           boardId: defaultBoard.id,
@@ -198,7 +199,7 @@ export async function getTasks() {
 
 export async function getTask(id: string) {
   try {
-    const card = await db.card.findUnique({
+    const card = await prisma.card.findUnique({
       where: { id },
     });
 
