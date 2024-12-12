@@ -41,18 +41,19 @@ export default function ForgotPasswordPage() {
     setError(undefined);
     setSuccess(false);
 
-    startTransition(async () => {
-      try {
-        const result = await initiatePasswordReset(values);
-        if (result.error) {
-          setError(result.error);
-        } else {
-          setSuccess(true);
-          form.reset();
-        }
-      } catch (err) {
-        setError("An error occurred. Please try again.");
-      }
+    startTransition(() => {
+      initiatePasswordReset(values)
+        .then((result) => {
+          if (result.error) {
+            setError(result.error);
+          } else {
+            setSuccess(true);
+            form.reset();
+          }
+        })
+        .catch(() => {
+          setError("An error occurred. Please try again.");
+        });
     });
   }
 
