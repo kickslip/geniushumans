@@ -6,6 +6,7 @@
 
 [*]add /messages/view  page, if we click on message on contactForm component, it should take you to pagee to view message and respond.
 [*]add messages tab or comp in users profile done
-[] 6.Add pics to register and login
-[] 7.Fix forget password
-[] 8.
+[*] 6.Add pics to register and login
+[*] 7. redirect on prices need to be a scrolldown to packages
+[*] 8. loading spinner on book now and message component
+[] 9. confirmation on the delete button on the the admin booking
