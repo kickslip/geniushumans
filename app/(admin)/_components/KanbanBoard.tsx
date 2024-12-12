@@ -92,7 +92,7 @@ const KanbanBoard = () => {
       </div>
 
       {/* Kanban Columns */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
+      <div className="grid grid-cols-1 sm:grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
         {columns.map((column) => (
           <Card key={column}>
             <CardHeader>
@@ -112,11 +112,12 @@ const KanbanBoard = () => {
                         {project.description}
                       </p>
                     </div>
-                    <div className="mt-4 flex justify-end space-x-2">
+                    <div className="mt-4 flex flex-col sm:flex-row sm:justify-end space-y-2 sm:space-y-0 sm:space-x-2">
                       {column !== "Completed Projects" && (
                         <Button
                           variant="outline"
                           size="sm"
+                          className="sm:text-sm md:text-base lg:text-lg"
                           onClick={() =>
                             moveProject(
                               project.id,
@@ -130,9 +131,10 @@ const KanbanBoard = () => {
                       <Button
                         variant="destructive"
                         size="sm"
+                        className="sm:text-sm md:text-base lg:text-lg"
                         onClick={() => deleteProject(project.id)}
                       >
-                        <Trash2 size={16} />
+                        <Trash2 className="sm:w-4 md:w-5 lg:w-6 sm:h-4 md:h-5 lg:h-6" />
                       </Button>
                     </div>
                   </div>
