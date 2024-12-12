@@ -35,7 +35,7 @@ export default async function RootLayout({
             disableTransitionOnChange
           >
             <Navigation />
-            <div className='mt-20'>
+            <div className='mt-20 z-0'>
             {children}
             </div>
             <Toaster />

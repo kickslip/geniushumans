@@ -12,7 +12,7 @@ const BUSINESS_HOURS = {
 };
 
 const BOOKING_WINDOW_DAYS = 30;
-const MAX_BOOKINGS_PER_DAY = 3;
+const MAX_BOOKINGS_PER_DAY = 6;
 
 // Validation schema for booking
 const BookingSchema = z.object({

@@ -1,7 +1,6 @@
 import { validateRequest } from "@/auth";
 import ProfileComponent from "@/components/ProfileComponent";
-import { ProjectForm } from "@/components/user/ProjectForm";
-import UkanbanBoard from "@/components/user/UkanbanBoard";
+import UserProjects from "@/components/user/UserProjects";
 import { redirect } from "next/navigation";
 
 export default async function ProfilePage() {
@@ -14,8 +13,7 @@ export default async function ProfilePage() {
   return (
     <>
       <ProfileComponent user={user} />
-      {/* <UkanbanBoard />
-      <ProjectForm /> */}
+      <UserProjects />
     </>
   );
 }

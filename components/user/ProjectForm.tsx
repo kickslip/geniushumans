@@ -6,7 +6,7 @@ import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { toast } from "sonner";
 import { validateRequest } from "@/auth";
-import { createProject } from "@/lib/projectServerActions";
+import { createProject } from "@/lib/ProjectServerActions";
 
 export function ProjectForm() {
   const handleSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
