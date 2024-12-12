@@ -24,6 +24,7 @@ import {
 } from "@/components/ui/select";
 import { useState } from "react";
 import { saveContactForm } from "@/lib/saveContactForm";
+import { Loader2 } from "lucide-react";
 
 // Define a type for the potential error response
 type FormError = {
@@ -87,10 +88,11 @@ export function ContactSection() {
         // Type-safe error extraction
         const error = result.error as FormError;
         const errorKeys = Object.keys(error);
-        const firstErrorMessage = errorKeys.length > 0 
-          ? error[errorKeys[0]]?.[0] 
-          : "Failed to submit the form";
-        
+        const firstErrorMessage =
+          errorKeys.length > 0
+            ? error[errorKeys[0]]?.[0]
+            : "Failed to submit the form";
+
         setSubmitError(firstErrorMessage || "Failed to submit the form");
       }
     } catch (error) {
@@ -167,7 +169,10 @@ export function ContactSection() {
                 render={({ field }) => (
                   <FormItem>
                     <FormLabel>Country</FormLabel>
-                    <Select onValueChange={field.onChange} defaultValue={field.value}>
+                    <Select
+                      onValueChange={field.onChange}
+                      defaultValue={field.value}
+                    >
                       <FormControl>
                         <SelectTrigger>
                           <SelectValue placeholder="Select your country" />
@@ -192,7 +197,10 @@ export function ContactSection() {
                 render={({ field }) => (
                   <FormItem>
                     <FormLabel>Interested Package</FormLabel>
-                    <Select onValueChange={field.onChange} defaultValue={field.value}>
+                    <Select
+                      onValueChange={field.onChange}
+                      defaultValue={field.value}
+                    >
                       <FormControl>
                         <SelectTrigger>
                           <SelectValue placeholder="Select a package" />
@@ -239,12 +247,18 @@ export function ContactSection() {
                 </div>
               )}
 
-              <Button
-                type="submit"
-                className="w-full"
-                disabled={isSubmitting}
-              >
-                {isSubmitting ? "Sending..." : "Send Message"}
+              <Button 
+              type="submit" 
+              className="w-full" 
+              disabled={isSubmitting}>
+                {isSubmitting ? (
+                  <div className="flex items-center justify-center">
+                    <Loader2 className="h-4 w-4 animate-spin mr-2" />
+                    Sent Message...
+                  </div>
+                ) : (
+                  "Send Message"
+                )}
               </Button>
             </form>
           </Form>

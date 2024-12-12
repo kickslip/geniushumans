@@ -6,14 +6,14 @@ import { useForm, Controller } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
 import { DayPicker } from 'react-day-picker';
-import 'react-day-picker/dist/style.css'; // Important: add this import
+import 'react-day-picker/dist/style.css';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { Toaster, toast } from 'sonner';
+import { Loader2 } from 'lucide-react';
 import { createBooking, getAvailableTimeSlots } from '@/lib/actions';
 
-// Validation schema matching the server-side BookingSchema
 const BookingFormSchema = z.object({
   date: z.date(),
   time: z.string().min(1, "Please select a time slot"),
@@ -28,6 +28,9 @@ type BookingFormData = z.infer<typeof BookingFormSchema>;
 
 const BookingComponent: React.FC = () => {
   const [availableTimeSlots, setAvailableTimeSlots] = useState<string[]>([]);
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [isFetchingSlots, setIsFetchingSlots] = useState(false);
+  
   const { 
     control, 
     register, 
@@ -38,23 +41,22 @@ const BookingComponent: React.FC = () => {
   } = useForm<BookingFormData>({
     resolver: zodResolver(BookingFormSchema),
     defaultValues: {
-      consultant: '', // Default empty consultant
+      consultant: '',
     }
   });
 
-  // Consultants list (you can modify this based on your actual consultants)
   const consultants = [
     { id: 'consultant1', name: 'John Doe' },
     { id: 'consultant2', name: 'Jane Smith' },
   ];
 
-  // Watch selected date and consultant to fetch available time slots
   const watchDate = watch('date');
   const watchConsultant = watch('consultant');
 
   React.useEffect(() => {
     const fetchAvailableSlots = async () => {
       if (watchDate && watchConsultant) {
+        setIsFetchingSlots(true);
         try {
           const slots = await getAvailableTimeSlots(
             watchDate.toISOString(), 
@@ -63,6 +65,8 @@ const BookingComponent: React.FC = () => {
           setAvailableTimeSlots(slots);
         } catch (error) {
           toast.error('Failed to fetch available time slots');
+        } finally {
+          setIsFetchingSlots(false);
         }
       }
     };
@@ -71,9 +75,9 @@ const BookingComponent: React.FC = () => {
   }, [watchDate, watchConsultant]);
 
   const onSubmit = async (data: BookingFormData) => {
+    setIsSubmitting(true);
     const formData = new FormData();
     Object.entries(data).forEach(([key, value]) => {
-      // Handle date conversion to string
       formData.append(key, 
         key === 'date' ? (value as Date).toISOString() : 
         value as string
@@ -85,25 +89,24 @@ const BookingComponent: React.FC = () => {
       
       if (result.success) {
         toast.success(result.message);
-        // Reset form or redirect as needed
       } else {
         toast.error(result.message);
       }
     } catch (error) {
       toast.error('An unexpected error occurred');
+    } finally {
+      setIsSubmitting(false);
     }
   };
 
-  // Define date restrictions
   const today = new Date();
-  const maxBookingDate = addDays(today, 30); // Match BOOKING_WINDOW_DAYS from server action
+  const maxBookingDate = addDays(today, 30);
 
   return (
     <div className="max-w-md mx-auto p-6 bg-secondary/30 shadow-md rounded-lg">
       <h2 className="text-2xl font-bold mb-6 text-center">Book an Appointment</h2>
       
       <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
-        {/* Date Selection */}
         <div>
           <label className="block mb-2 font-medium">Select Date</label>
           <Controller
@@ -115,22 +118,19 @@ const BookingComponent: React.FC = () => {
                 selected={field.value}
                 onSelect={(date) => {
                   field.onChange(date);
-                  // Reset time when date changes
                   setValue('time', '');
                 }}
                 disabled={[
                   { before: today },
                   { after: maxBookingDate }
                 ]}
-                className="rounded-md border "
+                className="rounded-md border"
               />
             )}
           />
           {errors.date && <p className="text-red-500 text-sm">{errors.date.message}</p>}
         </div>
 
-        {/* Rest of the component remains the same as in the previous version */}
-        {/* Consultant Selection */}
         <div>
           <label className="block mb-2 font-medium">Select Consultant</label>
           <Controller
@@ -160,36 +160,40 @@ const BookingComponent: React.FC = () => {
           {errors.consultant && <p className="text-red-500 text-sm">{errors.consultant.message}</p>}
         </div>
 
-        {/* Time Slot Selection */}
         {watchDate && watchConsultant && (
           <div>
             <label className="block mb-2 font-medium">Select Time Slot</label>
-            <Controller
-              name="time"
-              control={control}
-              render={({ field }) => (
-                <Select 
-                  onValueChange={field.onChange}
-                  value={field.value}
-                >
-                  <SelectTrigger>
-                    <SelectValue placeholder="Choose a time slot" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {availableTimeSlots.map((slot) => (
-                      <SelectItem key={slot} value={slot}>
-                        {slot}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              )}
-            />
+            {isFetchingSlots ? (
+              <div className="flex items-center justify-center p-4">
+                <Loader2 className="h-6 w-6 animate-spin" />
+              </div>
+            ) : (
+              <Controller
+                name="time"
+                control={control}
+                render={({ field }) => (
+                  <Select 
+                    onValueChange={field.onChange}
+                    value={field.value}
+                  >
+                    <SelectTrigger>
+                      <SelectValue placeholder="Choose a time slot" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {availableTimeSlots.map((slot) => (
+                        <SelectItem key={slot} value={slot}>
+                          {slot}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                )}
+              />
+            )}
             {errors.time && <p className="text-red-500 text-sm">{errors.time.message}</p>}
           </div>
         )}
 
-        {/* Personal Details */}
         <div>
           <label className="block mb-2 font-medium">Name</label>
           <Input 
@@ -229,8 +233,16 @@ const BookingComponent: React.FC = () => {
         <Button 
           type="submit" 
           className="w-full"
+          disabled={isSubmitting}
         >
-          Book Appointment
+          {isSubmitting ? (
+            <div className="flex items-center justify-center">
+              <Loader2 className="h-4 w-4 animate-spin mr-2" />
+              Booking...
+            </div>
+          ) : (
+            'Book Appointment'
+          )}
         </Button>
       </form>
       
