@@ -1,7 +1,7 @@
 "use server";
 
 import { lucia } from "@/auth";
-import prisma from "@/lib/prisma";
+import { prisma } from '@/prisma/client';
 import { hash, verify } from "@node-rs/argon2";
 import { isRedirectError } from "next/dist/client/components/redirect";
 import { cookies } from "next/headers";
