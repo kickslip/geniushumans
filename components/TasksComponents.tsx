@@ -1,23 +1,50 @@
-"use client"
+"use client";
 
-import React, { useState, useEffect } from 'react';
-import { Plus, Pencil, Trash2 } from 'lucide-react';
-import { Card, CardContent, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { Textarea } from '@/components/ui/textarea';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { createTask, deleteTask, getTasks, updateTask } from '@/app/task/actions';
+import React, { useState, useEffect } from "react";
+import { Plus, Pencil, Trash2 } from "lucide-react";
+import {
+  Card,
+  CardContent,
+  CardFooter,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Textarea } from "@/components/ui/textarea";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import {
+  createTask,
+  deleteTask,
+  getTasks,
+  updateTask,
+} from "@/app/task/actions";
+
+interface Task {
+  id: string;
+  title: string;
+  description: string;
+  priority: "low" | "medium" | "high";
+  dueDate: string;
+  createdAt?: string;
+  updatedAt?: string;
+}
 
 const TaskBoard = () => {
-  const [tasks, setTasks] = useState([]);
+  const [tasks, setTasks] = useState<Task[]>([]);
   const [isCreating, setIsCreating] = useState(false);
-  const [editingTask, setEditingTask] = useState(null);
+  const [editingTask, setEditingTask] = useState<Task | null>(null);
   const [formData, setFormData] = useState({
-    title: '',
-    description: '',
-    dueDate: '',
-    priority: 'medium'
+    title: "",
+    description: "",
+    dueDate: "",
+    priority: "medium" as "low" | "medium" | "high",
   });
 
   useEffect(() => {
@@ -26,16 +53,16 @@ const TaskBoard = () => {
         const fetchedTasks = await getTasks();
         setTasks(fetchedTasks);
       } catch (error) {
-        console.error('Error fetching tasks:', error);
+        console.error("Error fetching tasks:", error);
       }
     };
     loadTasks();
   }, []);
 
-  const handleSubmit = async (e: { preventDefault: () => void; }) => {
+  const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     if (!formData.title || !formData.description || !formData.dueDate) {
-      alert('Please fill out all fields');
+      alert("Please fill out all fields");
       return;
     }
 
@@ -49,54 +76,54 @@ const TaskBoard = () => {
       setTasks(updatedTasks);
       resetForm();
     } catch (error) {
-      console.error('Failed to save task:', error);
+      console.error("Failed to save task:", error);
     }
   };
 
-  const handleDelete = async (taskId) => {
-    if (!window.confirm('Are you sure you want to delete this task?')) return;
+  const handleDelete = async (taskId: string) => {
+    if (!window.confirm("Are you sure you want to delete this task?")) return;
 
     try {
       await deleteTask(taskId);
       const updatedTasks = await getTasks();
       setTasks(updatedTasks);
     } catch (error) {
-      console.error('Failed to delete task:', error);
+      console.error("Failed to delete task:", error);
     }
   };
 
   const resetForm = () => {
     setFormData({
-      title: '',
-      description: '',
-      dueDate: '',
-      priority: 'medium'
+      title: "",
+      description: "",
+      dueDate: "",
+      priority: "medium",
     });
     setIsCreating(false);
     setEditingTask(null);
   };
 
-  const startEdit = (task) => {
+  const startEdit = (task: Task) => {
     setEditingTask(task);
     setFormData({
       title: task.title,
       description: task.description,
       dueDate: task.dueDate,
-      priority: task.priority
+      priority: task.priority,
     });
     setIsCreating(false);
   };
 
-  const getPriorityColor = (priority) => {
+  const getPriorityColor = (priority: "low" | "medium" | "high") => {
     switch (priority) {
-      case 'high':
-        return 'text-red-500';
-      case 'medium':
-        return 'text-yellow-500';
-      case 'low':
-        return 'text-green-500';
+      case "high":
+        return "text-red-500";
+      case "medium":
+        return "text-yellow-500";
+      case "low":
+        return "text-green-500";
       default:
-        return '';
+        return "";
     }
   };
 
@@ -106,7 +133,7 @@ const TaskBoard = () => {
         <Button
           onClick={() => setIsCreating(true)}
           className="flex items-center gap-2"
-          disabled={isCreating || editingTask}
+          disabled={isCreating || !!editingTask}
         >
           <Plus size={16} />
           Add Task
@@ -116,7 +143,7 @@ const TaskBoard = () => {
       {(isCreating || editingTask) && (
         <Card className="mb-6">
           <CardHeader>
-            <CardTitle>{editingTask ? 'Edit Task' : 'New Task'}</CardTitle>
+            <CardTitle>{editingTask ? "Edit Task" : "New Task"}</CardTitle>
           </CardHeader>
           <form onSubmit={handleSubmit}>
             <CardContent className="space-y-4">
@@ -148,7 +175,7 @@ const TaskBoard = () => {
                 <div>
                   <Select
                     value={formData.priority}
-                    onValueChange={(value) => setFormData({ ...formData, priority: value })}
+                    onValueChange={(value) => setFormData({ ...formData, priority: value as "low" | "medium" | "high" })}
                   >
                     <SelectTrigger>
                       <SelectValue placeholder="Select priority" />
@@ -167,7 +194,7 @@ const TaskBoard = () => {
                 Cancel
               </Button>
               <Button type="submit">
-                {editingTask ? 'Update' : 'Create'} Task
+                {editingTask ? "Update" : "Create"} Task
               </Button>
             </CardFooter>
           </form>
@@ -185,7 +212,7 @@ const TaskBoard = () => {
                     variant="ghost"
                     size="icon"
                     onClick={() => startEdit(task)}
-                    disabled={isCreating || editingTask}
+                    disabled={isCreating || !!editingTask}
                   >
                     <Pencil size={16} />
                   </Button>
@@ -193,7 +220,7 @@ const TaskBoard = () => {
                     variant="ghost"
                     size="icon"
                     onClick={() => handleDelete(task.id)}
-                    disabled={isCreating || editingTask}
+                    disabled={isCreating || !!editingTask}
                   >
                     <Trash2 size={16} />
                   </Button>
