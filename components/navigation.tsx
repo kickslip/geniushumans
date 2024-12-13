@@ -13,8 +13,8 @@ import { useSession } from "../app/SessionProvider";
 const navItems = [
   { href: "/", label: "Home" },
   { href: "/book", label: "Book Now" },
-  { href: "#tech-stack", label: "Tech Stack" },
   { href: "#services", label: "Services" },
+  { href: "#tech-stack", label: "Tech Stack" },
   { href: "#pricing", label: "Pricing" },
   { href: "#contact", label: "Contact Us" },
 ];
