@@ -2,9 +2,10 @@ ______________________________________________________________
 UI
 ______________________________________________________________
 
-[] Fix ui on form input and calender(opacity & theme colour issues)
-[] Fix the ui transparency/opacity on select dropdowns
+[*] Fix ui on form input and calender(opacity & theme colour issues)
+[*] Fix the ui transparency/opacity on select dropdowns
 [*] Add pics to register and login
+[] Focus on making app mobile responsive  *********
 
 
 
@@ -17,6 +18,7 @@ ______________________________________________________________
 [] Confirmation dialog on the delete button on the the admin booking
 [*] Redirect on prices need to be a scrolldown to packages
 [] Add redirect to confirmation page or to home
+[] Focus on making app mobile responsive  *********
 
 
 
