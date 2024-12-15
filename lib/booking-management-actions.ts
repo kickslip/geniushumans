@@ -114,14 +114,34 @@ export async function updateBookingStatus(
     };
   }
 }
+
 export async function deleteBooking(bookingId: string) {
   try {
+    // Verify the booking exists before deletion
+    const existingBooking = await prisma.booking.findUnique({
+      where: { id: bookingId }
+    });
+
+    if (!existingBooking) {
+      return {
+        success: false,
+        message: 'Booking not found'
+      };
+    }
+
+    // Delete associated records (if any) first
+    // For example, if you have related payments or notifications:
+    // await prisma.payment.deleteMany({ where: { bookingId } });
+    // await prisma.notification.deleteMany({ where: { bookingId } });
+
+    // Delete the booking
     await prisma.booking.delete({
       where: { id: bookingId }
     });
 
     // Revalidate paths to refresh server-side rendering
     revalidatePath('/dashboard/bookings');
+    revalidatePath(`/dashboard/bookings/${bookingId}`);
 
     return {
       success: true,
@@ -129,6 +149,24 @@ export async function deleteBooking(bookingId: string) {
     };
   } catch (error) {
     console.error('Failed to delete booking:', error);
+    
+    // Check if it's a Prisma error and provide more specific error messages
+    if (error instanceof Error) {
+      if (error.message.includes('Foreign key constraint failed')) {
+        return {
+          success: false,
+          message: 'Cannot delete booking because it has related records'
+        };
+      }
+      
+      if (error.message.includes('Record to delete does not exist')) {
+        return {
+          success: false,
+          message: 'Booking not found'
+        };
+      }
+    }
+
     return {
       success: false,
       message: 'Failed to delete booking. Please try again.'

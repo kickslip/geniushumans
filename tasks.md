@@ -15,7 +15,7 @@ ______________________________________________________________
 
 [*] Loading spinner on book now and message component
 [] Make sure all form data clears out when user submits, user needs to be redirected or notified of success action.
-[] Confirmation dialog on the delete button on the the admin booking
+[*] Confirmation dialog on the delete button on the the admin booking
 [*] Redirect on prices need to be a scrolldown to packages
 [] Add redirect to confirmation page or to home
 [] Focus on making app mobile responsive  *********
@@ -26,7 +26,7 @@ ______________________________________________________________
 FunX
 ______________________________________________________________
 
-[] Fix Dialog >>  View button >> Booking details Component.
+[*] Fix Dialog >>  View button >> Booking details Component.
 [*] Need to update the user page with panel that includes adding project and status
 []  Add message component on user profile
 [*] Booking (Confirm, delete & edit booking) confirmation on admin works

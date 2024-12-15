@@ -34,9 +34,11 @@ import {
   getBookingSummaryByConsultant,
 } from "@/lib/booking-actions";
 import {
+  deleteBooking,
   getDetailedBookings,
   updateBookingStatus,
 } from "@/lib/booking-management-actions";
+import { EyeIcon, PenIcon, Trash2 } from "lucide-react";
 
 interface BookingDetails {
   id: string;
@@ -78,6 +80,60 @@ const AdminPanel: React.FC = () => {
     null
   );
   const [isDetailsModalOpen, setIsDetailsModalOpen] = useState(false);
+
+  // State for delete confirmation dialog
+  const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
+  const [bookingToDelete, setBookingToDelete] = useState<BookingDetails | null>(
+    null
+  );
+  const [isUpdateDialogOpen, setIsUpdateDialogOpen] = useState(false);
+  const [updateForm, setUpdateForm] = useState({
+    consultant: "",
+    name: "",
+    status: "PENDING",
+  });
+
+  const openUpdateDialog = (booking: BookingDetails) => {
+    setUpdateForm({
+      consultant: booking.consultant,
+      name: booking.user.name,
+      status: booking.status,
+    });
+    setIsUpdateDialogOpen(true);
+  };
+
+  const handleUpdateBooking = async () => {
+    if (!selectedBooking) return;
+
+    try {
+      const formData = new FormData();
+      formData.append("id", selectedBooking.id);
+      formData.append("consultant", updateForm.consultant);
+      formData.append("name", updateForm.name);
+      formData.append("status", updateForm.status);
+
+      const result = await updateBookingStatus(formData);
+
+      if (result.success) {
+        toast.success("Booking updated successfully");
+        setIsUpdateDialogOpen(false);
+
+        // Refresh bookings and summaries
+        const updatedBookings = await getDetailedBookings(
+          selectedMonth,
+          selectedConsultant
+        );
+        setBookings(updatedBookings);
+        const summary = await getBookingSummary(selectedMonth);
+        setBookingSummary(summary);
+      } else {
+        toast.error(result.message || "Failed to update booking");
+      }
+    } catch (error) {
+      console.error("Error updating booking:", error);
+      toast.error("Failed to update booking");
+    }
+  };
 
   useEffect(() => {
     const fetchBookingsAndSummary = async () => {
@@ -162,6 +218,42 @@ const AdminPanel: React.FC = () => {
   const openBookingDetails = (booking: BookingDetails) => {
     setSelectedBooking(booking);
     setIsDetailsModalOpen(true);
+  };
+
+  const openDeleteDialog = (booking: BookingDetails) => {
+    setBookingToDelete(booking);
+    setIsDeleteDialogOpen(true);
+  };
+
+  const handleDeleteBooking = async () => {
+    if (!bookingToDelete) return;
+  
+    try {
+      const result = await deleteBooking(bookingToDelete.id);
+  
+      if (result.success) {
+        toast.success(result.message);
+        
+        // Refresh the bookings data
+        const updatedBookings = await getDetailedBookings(selectedMonth, selectedConsultant);
+        setBookings(updatedBookings);
+        
+        // Refresh the summary data
+        const summary = await getBookingSummary(selectedMonth);
+        setBookingSummary(summary);
+        
+        const consultantSummaryData = await getBookingSummaryByConsultant(selectedMonth);
+        setConsultantSummary(consultantSummaryData);
+      } else {
+        toast.error(result.message);
+      }
+    } catch (error) {
+      console.error("Error deleting booking:", error);
+      toast.error("Failed to delete booking");
+    } finally {
+      setIsDeleteDialogOpen(false);
+      setBookingToDelete(null);
+    }
   };
 
   return (
@@ -281,12 +373,20 @@ const AdminPanel: React.FC = () => {
                       {booking.status}
                     </TableCell>
                     <TableCell>
+
                       <Button
                         onClick={() => openBookingDetails(booking)}
                         size="sm"
                         className="mr-2"
                       >
-                        View
+                        <EyeIcon/>
+                      </Button>
+                      <Button
+                        onClick={() => openDeleteDialog(booking)}
+                        size="sm"
+                        variant="destructive"
+                      >
+                        <Trash2/>
                       </Button>
                     </TableCell>
                   </TableRow>
@@ -296,6 +396,170 @@ const AdminPanel: React.FC = () => {
           </div>
         </CardContent>
       </Card>
+
+      <Dialog open={isUpdateDialogOpen} onOpenChange={setIsUpdateDialogOpen}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Update Booking</DialogTitle>
+            <DialogDescription>
+              Modify the details of the booking.
+            </DialogDescription>
+          </DialogHeader>
+          <div className="space-y-4">
+            <div>
+              <label className="block mb-2 font-medium">Consultant</label>
+              <input
+                type="text"
+                value={updateForm.consultant}
+                onChange={(e) =>
+                  setUpdateForm((prev) => ({
+                    ...prev,
+                    consultant: e.target.value,
+                  }))
+                }
+                className="w-full p-2 border rounded"
+              />
+            </div>
+            <div>
+              <label className="block mb-2 font-medium">User Name</label>
+              <input
+                type="text"
+                value={updateForm.name}
+                onChange={(e) =>
+                  setUpdateForm((prev) => ({ ...prev, name: e.target.value }))
+                }
+                className="w-full p-2 border rounded"
+              />
+            </div>
+            <div>
+              <label className="block mb-2 font-medium">Status</label>
+              <Select
+                value={updateForm.status}
+                onValueChange={(value) =>
+                  setUpdateForm((prev) => ({ ...prev, status: value }))
+                }
+              >
+                <SelectTrigger className="w-full">
+                  <SelectValue placeholder="Select Status" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="PENDING">Pending</SelectItem>
+                  <SelectItem value="CONFIRMED">Confirmed</SelectItem>
+                  <SelectItem value="CANCELLED">Cancelled</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+          </div>
+          <div className="flex justify-end space-x-4 mt-4">
+            <Button
+              onClick={() => setIsUpdateDialogOpen(false)}
+              variant="secondary"
+            >
+              Cancel
+            </Button>
+            <Button onClick={handleUpdateBooking} variant="default">
+              Save Changes
+            </Button>
+          </div>
+        </DialogContent>
+      </Dialog>
+
+      <Dialog open={isDetailsModalOpen} onOpenChange={setIsDetailsModalOpen}>
+        <DialogContent>
+          {selectedBooking && (
+            <>
+              <DialogHeader>
+                <DialogTitle>Booking Details</DialogTitle>
+                <DialogDescription>
+                  Detailed information about the selected booking.
+                </DialogDescription>
+              </DialogHeader>
+              <div className="space-y-4">
+                <p>
+                  <strong>Date:</strong>{" "}
+                  {format(selectedBooking.date, "MMM dd, yyyy")}
+                </p>
+                <p>
+                  <strong>Time:</strong> {selectedBooking.time}
+                </p>
+                <p>
+                  <strong>Consultant:</strong> {selectedBooking.consultant}
+                </p>
+                <p>
+                  <strong>Status:</strong>{" "}
+                  <span
+                    className={`font-semibold ${
+                      {
+                        PENDING: "text-yellow-600",
+                        CONFIRMED: "text-green-600",
+                        CANCELLED: "text-red-600",
+                      }[selectedBooking.status]
+                    }`}
+                  >
+                    {selectedBooking.status}
+                  </span>
+                </p>
+                <p>
+                  <strong>User Name:</strong> {selectedBooking.user.name}
+                </p>
+                <p>
+                  <strong>User Email:</strong> {selectedBooking.user.email}
+                </p>
+                <p>
+                  <strong>Company:</strong> {selectedBooking.user.company}
+                </p>
+                <p>
+                  <strong>Created At:</strong>{" "}
+                  {format(selectedBooking.createdAt, "MMM dd, yyyy HH:mm")}
+                </p>
+                <p>
+                  <strong>Updated At:</strong>{" "}
+                  {format(selectedBooking.updatedAt, "MMM dd, yyyy HH:mm")}
+                </p>
+              </div>
+              <div className="flex justify-end space-x-4">
+                <Button
+                  onClick={() => setIsDetailsModalOpen(false)}
+                  variant="secondary"
+                >
+                  Close
+                </Button>
+                {selectedBooking.status !== "CONFIRMED" && (
+                  <Button
+                    onClick={() => handleUpdateStatus("CONFIRMED")}
+                    variant="default"
+                  >
+                    Confirm
+                  </Button>
+                )}
+              </div>
+            </>
+          )}
+        </DialogContent>
+      </Dialog>
+
+      <Dialog open={isDeleteDialogOpen} onOpenChange={setIsDeleteDialogOpen}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Confirm Deletion</DialogTitle>
+            <DialogDescription>
+              Are you sure you want to delete this booking? This action cannot
+              be undone.
+            </DialogDescription>
+          </DialogHeader>
+          <div className="flex justify-end space-x-4">
+            <Button
+              onClick={() => setIsDeleteDialogOpen(false)}
+              variant="secondary"
+            >
+              Cancel
+            </Button>
+            <Button onClick={handleDeleteBooking} variant="destructive">
+              Delete
+            </Button>
+          </div>
+        </DialogContent>
+      </Dialog>
 
       <Toaster />
     </div>
