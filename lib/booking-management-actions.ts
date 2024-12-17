@@ -16,22 +16,56 @@ const BookingUpdateSchema = z.object({
   name: z.string().optional()
 });
 
-export async function getDetailedBookings(
-  month?: string, 
-  consultant?: string
+
+// Function to update booking dates and times
+export async function updateBookingDateTime(
+  bookingId: string,
+  newDate?: Date,
+  newTime?: string,
 ) {
   try {
-    // If no month is provided, use current month
-    const targetMonth = month || new Date().toISOString().slice(0, 7);
+    const booking = await prisma.booking.update({
+      where: { id: bookingId },
+      data: {
+        ...(newDate && { date: newDate }),
+        ...(newTime && { time: newTime }),
+        updatedAt: new Date(),
+      },
+    });
+    return booking;
+  } catch (error) {
+    console.error('Failed to update booking date/time:', error);
+    throw error;
+  }
+}
 
-    // Parse the month string
-    const [year, monthNum] = targetMonth.split('-').map(Number);
-    
-    // Create date range for the specified month
-    const startDate = new Date(year, monthNum - 1, 1);
-    const endDate = new Date(year, monthNum, 0);
+// Enhanced version of getDetailedBookings with more date filtering options
+export async function getDetailedBookings(
+  month?: string,
+  consultant?: string,
+  dateRange?: { start: Date; end: Date }
+) {
+  try {
+    // If specific date range is provided, use it
+    // Otherwise, if month is provided, use month range
+    // If neither, use current month
+    let startDate: Date;
+    let endDate: Date;
 
-    // Fetch detailed bookings
+    if (dateRange) {
+      startDate = dateRange.start;
+      endDate = dateRange.end;
+    } else {
+      const targetMonth = month || new Date().toISOString().slice(0, 7);
+      const [year, monthNum] = targetMonth.split('-').map(Number);
+      startDate = new Date(year, monthNum - 1, 1);
+      endDate = new Date(year, monthNum, 0);
+    }
+
+    // Set time to start and end of day respectively
+    startDate.setHours(0, 0, 0, 0);
+    endDate.setHours(23, 59, 59, 999);
+
     const bookings = await prisma.booking.findMany({
       where: {
         date: {
@@ -43,17 +77,23 @@ export async function getDetailedBookings(
           : {})
       },
       include: {
-        user: true // Include user details
+        user: true
       },
       orderBy: {
         date: 'desc'
       }
     });
 
-    // Transform bookings to include more details
+    // Transform bookings to include more details and date formatting
     return bookings.map(booking => ({
       id: booking.id,
       date: booking.date,
+      formattedDate: booking.date.toLocaleDateString('en-US', {
+        weekday: 'long',
+        year: 'numeric',
+        month: 'long',
+        day: 'numeric'
+      }),
       time: booking.time,
       consultant: booking.consultant,
       status: booking.status,
@@ -63,12 +103,29 @@ export async function getDetailedBookings(
         company: booking.user.company || 'N/A'
       },
       createdAt: booking.createdAt,
-      updatedAt: booking.updatedAt
+      updatedAt: booking.updatedAt,
+      lastModified: booking.updatedAt.toLocaleString('en-US', {
+        dateStyle: 'medium',
+        timeStyle: 'short'
+      })
     }));
   } catch (error) {
     console.error('Failed to fetch detailed bookings:', error);
     return [];
   }
+}
+
+// Helper function to validate date ranges
+export async function validateDateRange(startDate: Date, endDate: Date): Promise<boolean> {
+  const now = new Date();
+  return (
+    startDate instanceof Date &&
+    endDate instanceof Date &&
+    !isNaN(startDate.getTime()) &&
+    !isNaN(endDate.getTime()) &&
+    startDate <= endDate &&
+    startDate >= new Date(now.getFullYear() - 1, now.getMonth(), now.getDate()) // Limit to 1 year in the past
+  );
 }
 
 export async function updateBookingStatus(

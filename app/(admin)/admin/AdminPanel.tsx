@@ -36,6 +36,7 @@ import {
 import {
   deleteBooking,
   getDetailedBookings,
+  updateBookingDateTime,
   updateBookingStatus,
 } from "@/lib/booking-management-actions";
 import { EyeIcon, PenIcon, Trash2 } from "lucide-react";
@@ -43,6 +44,7 @@ import { EyeIcon, PenIcon, Trash2 } from "lucide-react";
 interface BookingDetails {
   id: string;
   date: Date;
+  formattedDate: string;
   time: string;
   consultant: string;
   status: "PENDING" | "CONFIRMED" | "CANCELLED";
@@ -53,6 +55,7 @@ interface BookingDetails {
   };
   createdAt: Date;
   updatedAt: Date;
+  lastModified: string;
 }
 
 const AdminPanel: React.FC = () => {
@@ -93,6 +96,13 @@ const AdminPanel: React.FC = () => {
     status: "PENDING",
   });
 
+  const [isDateTimeUpdateDialogOpen, setIsDateTimeUpdateDialogOpen] =
+    useState(false);
+  const [dateTimeUpdateForm, setDateTimeUpdateForm] = useState({
+    date: "",
+    time: "",
+  });
+
   const openUpdateDialog = (booking: BookingDetails) => {
     setUpdateForm({
       consultant: booking.consultant,
@@ -100,6 +110,32 @@ const AdminPanel: React.FC = () => {
       status: booking.status,
     });
     setIsUpdateDialogOpen(true);
+  };
+
+  const handleDateTimeUpdate = async () => {
+    if (!selectedBooking) return;
+
+    try {
+      const newDate = dateTimeUpdateForm.date
+        ? new Date(dateTimeUpdateForm.date)
+        : undefined;
+      const newTime = dateTimeUpdateForm.time || undefined;
+
+      await updateBookingDateTime(selectedBooking.id, newDate, newTime);
+
+      toast.success("Booking date/time updated successfully");
+      setIsDateTimeUpdateDialogOpen(false);
+
+      // Refresh the bookings
+      const updatedBookings = await getDetailedBookings(
+        selectedMonth,
+        selectedConsultant
+      );
+      setBookings(updatedBookings);
+    } catch (error) {
+      console.error("Error updating booking date/time:", error);
+      toast.error("Failed to update booking date/time");
+    }
   };
 
   const handleUpdateBooking = async () => {
@@ -227,22 +263,27 @@ const AdminPanel: React.FC = () => {
 
   const handleDeleteBooking = async () => {
     if (!bookingToDelete) return;
-  
+
     try {
       const result = await deleteBooking(bookingToDelete.id);
-  
+
       if (result.success) {
         toast.success(result.message);
-        
+
         // Refresh the bookings data
-        const updatedBookings = await getDetailedBookings(selectedMonth, selectedConsultant);
+        const updatedBookings = await getDetailedBookings(
+          selectedMonth,
+          selectedConsultant
+        );
         setBookings(updatedBookings);
-        
+
         // Refresh the summary data
         const summary = await getBookingSummary(selectedMonth);
         setBookingSummary(summary);
-        
-        const consultantSummaryData = await getBookingSummaryByConsultant(selectedMonth);
+
+        const consultantSummaryData = await getBookingSummaryByConsultant(
+          selectedMonth
+        );
         setConsultantSummary(consultantSummaryData);
       } else {
         toast.error(result.message);
@@ -373,20 +414,34 @@ const AdminPanel: React.FC = () => {
                       {booking.status}
                     </TableCell>
                     <TableCell>
-
+                      <Button
+                        onClick={() => {
+                          setSelectedBooking(booking);
+                          setDateTimeUpdateForm({
+                            date: format(booking.date, "yyyy-MM-dd"),
+                            time: booking.time,
+                          });
+                          setIsDateTimeUpdateDialogOpen(true);
+                        }}
+                        size="sm"
+                        className="mr-2"
+                        variant="outline"
+                      >
+                        <PenIcon />
+                      </Button>
                       <Button
                         onClick={() => openBookingDetails(booking)}
                         size="sm"
                         className="mr-2"
                       >
-                        <EyeIcon/>
+                        <EyeIcon />
                       </Button>
                       <Button
                         onClick={() => openDeleteDialog(booking)}
                         size="sm"
                         variant="destructive"
                       >
-                        <Trash2/>
+                        <Trash2 />
                       </Button>
                     </TableCell>
                   </TableRow>
@@ -396,6 +451,61 @@ const AdminPanel: React.FC = () => {
           </div>
         </CardContent>
       </Card>
+
+      <Dialog
+        open={isDateTimeUpdateDialogOpen}
+        onOpenChange={setIsDateTimeUpdateDialogOpen}
+      >
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Update Booking Date/Time</DialogTitle>
+            <DialogDescription>
+              Modify the date and time for this booking.
+            </DialogDescription>
+          </DialogHeader>
+          <div className="space-y-4">
+            <div>
+              <label className="block mb-2 font-medium">Date</label>
+              <input
+                type="date"
+                value={dateTimeUpdateForm.date}
+                onChange={(e) =>
+                  setDateTimeUpdateForm((prev) => ({
+                    ...prev,
+                    date: e.target.value,
+                  }))
+                }
+                className="w-full p-2 border rounded"
+              />
+            </div>
+            <div>
+              <label className="block mb-2 font-medium">Time</label>
+              <input
+                type="time"
+                value={dateTimeUpdateForm.time}
+                onChange={(e) =>
+                  setDateTimeUpdateForm((prev) => ({
+                    ...prev,
+                    time: e.target.value,
+                  }))
+                }
+                className="w-full p-2 border rounded"
+              />
+            </div>
+          </div>
+          <div className="flex justify-end space-x-4 mt-4">
+            <Button
+              onClick={() => setIsDateTimeUpdateDialogOpen(false)}
+              variant="secondary"
+            >
+              Cancel
+            </Button>
+            <Button onClick={handleDateTimeUpdate} variant="default">
+              Update
+            </Button>
+          </div>
+        </DialogContent>
+      </Dialog>
 
       <Dialog open={isUpdateDialogOpen} onOpenChange={setIsUpdateDialogOpen}>
         <DialogContent>
