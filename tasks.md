@@ -9,10 +9,13 @@ ______________________________________________________________
 
 
 
+
+
 ______________________________________________________________
 UX
 ______________________________________________________________
 
+[] Fix the consultation booking component so that the input field expands automatically if the characters are more than input field size.(cant see text if typed past the input field size, just try to add a big sentence and you will see)
 [*] Loading spinner on book now and message component
 [] Make sure all form data clears out when user submits, user needs to be redirected or notified of success action.
 [*] Confirmation dialog on the delete button on the the admin booking

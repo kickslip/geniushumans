@@ -1,10 +1,11 @@
-//lib/booking-actions
 "use server";
 
 import { z } from "zod";
 import { format } from "date-fns";
 import { revalidatePath } from "next/cache";
 import { prisma } from '@/prisma/client';
+import { validateRequest } from "@/auth";
+
 // Constants
 const BUSINESS_HOURS = {
   start: 9, // 9 AM
@@ -153,7 +154,7 @@ export async function getBookingSummaryByConsultant(
   }
 }
 
-// Optional: If you need a more generic summary method
+// Optional:  more generic summary method
 export async function getOverallBookingSummary() {
   try {
     const bookingSummary = await prisma.booking.groupBy({
@@ -170,5 +171,39 @@ export async function getOverallBookingSummary() {
   } catch (error) {
     console.error("Error fetching overall booking summary:", error);
     return [];
+  }
+}
+
+export async function fetchUserBookings() {
+  try {
+    // Get the current authenticated user
+    const session = await validateRequest();
+    
+    if (!session || !session.user) {
+      throw new Error('Unauthorized');
+    }
+
+    // Fetch bookings for the current user
+    const bookings = await prisma.booking.findMany({
+      where: {
+        userId: session.user.id
+      },
+      orderBy: {
+        date: 'desc' // Most recent bookings first
+      }
+    });
+
+    return bookings.map(booking => ({
+      id: booking.id,
+      date: booking.date,
+      time: booking.time,
+      consultant: booking.consultant,
+      status: booking.status,
+      company: booking.company || undefined,
+      message: booking.message || undefined
+    }));
+  } catch (error) {
+    console.error('Error fetching user bookings:', error);
+    throw error;
   }
 }
