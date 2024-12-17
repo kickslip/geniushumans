@@ -15,11 +15,7 @@ import {
 import { Toaster, toast } from "sonner";
 
 // Import server actions
-import {
-  getDetailedBookings,
-  updateBookingStatus,
-  deleteBooking,
-} from "@/lib/booking-management-actions";
+import { getDetailedBookings } from "@/lib/booking-management-actions";
 
 // Define types
 interface BookingDetails {
@@ -47,19 +43,44 @@ const CalendarPanel: React.FC = () => {
   const [currentDate, setCurrentDate] = useState(new Date()); // Manage current date
   const [view, setView] = useState<View>("month"); // Use `View` type from react-big-calendar
 
-  // Fetch bookings
-  useEffect(() => {
-    const fetchBookings = async () => {
-      try {
-        const fetchedBookings = await getDetailedBookings();
-        setBookings(fetchedBookings);
-      } catch (error) {
-        console.error("Failed to fetch bookings", error);
-        toast.error("Failed to load bookings. Please try again.");
-      }
+  // Fetch bookings dynamically based on the current date range
+  const fetchBookings = async (start: Date, end: Date) => {
+    try {
+      const dateRange = { start, end };
+      const fetchedBookings = await getDetailedBookings(undefined, undefined, dateRange);
+      setBookings(fetchedBookings);
+    } catch (error) {
+      console.error("Failed to fetch bookings", error);
+      toast.error("Failed to load bookings. Please try again.");
+    }
+  };
+
+  // Calculate start and end dates for the current view
+  const calculateDateRange = () => {
+    // Map react-big-calendar views to moment-compatible ranges
+    const viewToMomentMapping: Record<View, moment.unitOfTime.StartOf> = {
+      month: "month",
+      week: "week",
+      work_week: "isoWeek", // For "work_week" use ISO week
+      day: "day",
+      agenda: "day", // Use "day" for agenda view
     };
-    fetchBookings();
-  }, []);
+  
+    // Get the corresponding moment unit or default to "month"
+    const momentUnit = viewToMomentMapping[view] || "month";
+    
+    const start = moment(currentDate).startOf(momentUnit).toDate();
+    const end = moment(currentDate).endOf(momentUnit).toDate();
+  
+    return { start, end };
+  };
+  
+
+  // Fetch bookings on initial load and whenever the date or view changes
+  useEffect(() => {
+    const { start, end } = calculateDateRange();
+    fetchBookings(start, end);
+  }, [currentDate, view]);
 
   // Transform bookings to calendar events
   const events = bookings.map((booking) => ({
