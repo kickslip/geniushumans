@@ -1,6 +1,6 @@
 "use server";
 
-import prisma from "@/lib/prisma";
+import {prisma} from "@/prisma/client";
 import { RegistrationFormData, registrationSchema } from "@/lib/validations";
 import { hash } from "@node-rs/argon2";
 import { generateIdFromEntropySize } from "lucia";
