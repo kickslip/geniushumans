@@ -36,12 +36,19 @@ const BookingComponent: React.FC = () => {
     register, 
     handleSubmit, 
     setValue, 
-    watch, 
+    watch,
+    reset,
     formState: { errors } 
   } = useForm<BookingFormData>({
     resolver: zodResolver(BookingFormSchema),
     defaultValues: {
       consultant: '',
+      date: undefined,
+      time: '',
+      name: '',
+      email: '',
+      company: '',
+      message: '',
     }
   });
 
@@ -88,7 +95,24 @@ const BookingComponent: React.FC = () => {
       const result = await createBooking({}, formData);
       
       if (result.success) {
-        toast.success(result.message);
+        // Clear form
+        reset({
+          consultant: '',
+          date: undefined,
+          time: '',
+          name: '',
+          email: '',
+          company: '',
+          message: '',
+        });
+        
+        // Clear available time slots
+        setAvailableTimeSlots([]);
+        
+        // Show success message
+        toast.success(result.message, {
+          duration: 5000,
+        });
       } else {
         toast.error(result.message);
       }

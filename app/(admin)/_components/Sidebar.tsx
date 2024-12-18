@@ -54,7 +54,7 @@ const Sidebar: React.FC<SidebarProps> = ({ className, session, onClose }) => {
       {
         section: "USERS",
         items: [
-          { href: "/admin/update/user-role", icon: Users, label: "Update Roles", color: "#4CAF50" },
+          { href: "/admin/usermanagement", icon: Users, label: "Update Roles", color: "#4CAF50" },
         ],
       },
       {
