@@ -1,6 +1,6 @@
 import { validateRequest } from "@/auth";
 import ProfileComponent from "@/components/ProfileComponent";
-import UserBookings from "@/components/user/UserBookings";
+import { BookingConfirmation } from "@/components/user/BookingConfirmation";
 import UserProjects from "@/components/user/UserProjects";
 import { redirect } from "next/navigation";
 
@@ -14,7 +14,7 @@ export default async function ProfilePage() {
   return (
     <>
       <ProfileComponent user={user} />
-      {/* <UserBookings /> */}
+      <BookingConfirmation />
       <UserProjects />
     </>
   );

@@ -1,37 +1,122 @@
+// lib/booking-actions.ts
 "use server";
 
-import { z } from "zod";
-import { format } from "date-fns";
-import { revalidatePath } from "next/cache";
 import { prisma } from '@/prisma/client';
 import { validateRequest } from "@/auth";
+import { revalidatePath } from 'next/cache';
+import { BookingStatus } from '@prisma/client';
+import { format } from 'date-fns';
 
-// Constants
-const BUSINESS_HOURS = {
-  start: 9, // 9 AM
-  end: 17, // 5 PM
-};
+export async function createBooking(bookingData: {
+  date: Date;
+  time: string;
+  consultant: string;
+  name: string;
+  email: string;
+  company?: string;
+  message?: string;
+}) {
+  try {
+    const session = await validateRequest();
+    
+    if (!session || !session.user) {
+      throw new Error('Unauthorized');
+    }
 
-const BOOKING_WINDOW_DAYS = 30;
-const MAX_BOOKINGS_PER_DAY = 6;
+    // Create booking with initial status as PENDING
+    const newBooking = await prisma.booking.create({
+      data: {
+        ...bookingData,
+        userId: session.user.id,
+        status: 'PENDING', // Always start as PENDING
+      }
+    });
 
-// Validation schema for booking
-const BookingSchema = z.object({
-  date: z.date(),
-  time: z.string().refine(
-    (time) => {
-      const [hour] = time.split(":").map(Number);
-      return hour >= BUSINESS_HOURS.start && hour < BUSINESS_HOURS.end;
-    },
-    { message: "Booking time must be during business hours (9 AM - 5 PM)" }
-  ),
-  consultant: z.string().min(1, "Consultant is required"),
-  name: z.string().min(2, "Name must be at least 2 characters"),
-  email: z.string().email("Invalid email address"),
-  company: z.string().optional(),
-  message: z.string().optional(),
-});
+    // Revalidate the path to refresh the data
+    revalidatePath('/dashboard/bookings');
 
+    return {
+      success: true,
+      booking: newBooking
+    };
+  } catch (error) {
+    console.error('Error creating booking:', error);
+    return {
+      success: false,
+      message: 'Failed to create booking'
+    };
+  }
+}
+
+export async function fetchUserBookings() {
+  try {
+    const session = await validateRequest();
+    
+    if (!session || !session.user) {
+      throw new Error('Unauthorized');
+    }
+
+    // Fetch bookings for the current user
+    const bookings = await prisma.booking.findMany({
+      where: {
+        userId: session.user.id
+      },
+      orderBy: {
+        date: 'desc' // Most recent bookings first
+      }
+    });
+
+    return bookings.map(booking => ({
+      id: booking.id,
+      date: booking.date,
+      time: booking.time,
+      consultant: booking.consultant,
+      status: booking.status, // Ensure status is returned
+      company: booking.company || undefined,
+      message: booking.message || undefined
+    }));
+  } catch (error) {
+    console.error('Error fetching user bookings:', error);
+    throw error;
+  }
+}
+
+// Server action to confirm booking by admin
+export async function confirmBookingByAdmin(bookingId: string) {
+  try {
+    const session = await validateRequest();
+    
+    // Optional: Add admin role check
+    // if (!session || session.user.role !== 'ADMIN') {
+    //   throw new Error('Unauthorized');
+    // }
+
+    // Update booking status to CONFIRMED
+    const updatedBooking = await prisma.booking.update({
+      where: { 
+        id: bookingId
+      },
+      data: { 
+        status: 'CONFIRMED' 
+      }
+    });
+
+    // Revalidate paths to refresh data
+    revalidatePath('/dashboard/bookings');
+    revalidatePath('/admin/bookings');
+
+    return {
+      success: true,
+      booking: updatedBooking
+    };
+  } catch (error) {
+    console.error('Error confirming booking:', error);
+    return {
+      success: false,
+      message: 'Failed to confirm booking'
+    };
+  }
+}
 export async function getBookingSummary(month?: string) {
   try {
     // If no month is provided, use current month
@@ -92,10 +177,7 @@ export async function getBookingSummary(month?: string) {
   }
 }
 
-export async function getBookingSummaryByConsultant(
-  consultantId?: string,
-  month?: string
-) {
+export async function getBookingSummaryByConsultant(month?: string) {
   try {
     // If no month is provided, use current month
     const targetMonth = month || format(new Date(), "yyyy-MM");
@@ -107,19 +189,15 @@ export async function getBookingSummaryByConsultant(
     const startDate = new Date(year, monthNum - 1, 1);
     const endDate = new Date(year, monthNum, 0);
 
-    // Prepare where clause
-    const whereClause = {
-      date: {
-        gte: startDate,
-        lte: endDate,
-      },
-      ...(consultantId ? { consultant: consultantId } : {}),
-    };
-
     // Fetch bookings grouped by consultant and status
     const consultantBookings = await prisma.booking.groupBy({
       by: ["consultant", "status"],
-      where: whereClause,
+      where: {
+        date: {
+          gte: startDate,
+          lte: endDate,
+        },
+      },
       _count: {
         id: true,
       },
@@ -151,59 +229,5 @@ export async function getBookingSummaryByConsultant(
   } catch (error) {
     console.error("Failed to fetch consultant booking summary:", error);
     return {};
-  }
-}
-
-// Optional:  more generic summary method
-export async function getOverallBookingSummary() {
-  try {
-    const bookingSummary = await prisma.booking.groupBy({
-      by: ["status"],
-      _count: {
-        id: true,
-      },
-    });
-
-    return bookingSummary.map((booking) => ({
-      status: booking.status,
-      count: booking._count.id,
-    }));
-  } catch (error) {
-    console.error("Error fetching overall booking summary:", error);
-    return [];
-  }
-}
-
-export async function fetchUserBookings() {
-  try {
-    // Get the current authenticated user
-    const session = await validateRequest();
-    
-    if (!session || !session.user) {
-      throw new Error('Unauthorized');
-    }
-
-    // Fetch bookings for the current user
-    const bookings = await prisma.booking.findMany({
-      where: {
-        userId: session.user.id
-      },
-      orderBy: {
-        date: 'desc' // Most recent bookings first
-      }
-    });
-
-    return bookings.map(booking => ({
-      id: booking.id,
-      date: booking.date,
-      time: booking.time,
-      consultant: booking.consultant,
-      status: booking.status,
-      company: booking.company || undefined,
-      message: booking.message || undefined
-    }));
-  } catch (error) {
-    console.error('Error fetching user bookings:', error);
-    throw error;
   }
 }
