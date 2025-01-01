@@ -1,0 +1,138 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider  = "postgresql"
+  url       = env("POSTGRES_PRISMA_URL")
+  directUrl = env("POSTGRES_URL_NON_POOLING")
+}
+
+enum Role {
+  USER
+  ADMIN
+}
+
+enum BookingStatus {
+  PENDING
+  CONFIRMED
+  CANCELLED
+}
+
+enum ProjectStatus {
+  NEW
+  IN_PROGRESS
+  COMPLETED
+}
+
+model User {
+  id            String    @id @default(uuid())
+  username      String    @unique
+  email         String    @unique
+  passwordHash  String
+  phoneNumber   String    @default("")
+  company       String?
+  avatarUrl     String?
+  googleId      String?
+  role          Role      @default(USER)
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+  resetToken    String?  // Add this field
+  Board         Board[]
+  sessions      Session[]
+  Bookings      Booking[]
+  Projects      Project[]
+  
+  @@map("users")
+}
+
+model Session {
+  id        String   @id
+  userId    String
+  expiresAt DateTime
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@map("sessions")
+}
+
+model Booking {
+  id          String         @id @default(uuid())
+  userId      String
+  user        User           @relation(fields: [userId], references: [id], onDelete: Cascade)
+  date        DateTime
+  time        String
+  consultant  String
+  company     String?
+  message     String?
+  name        String
+  email       String
+  status      BookingStatus  @default(PENDING)
+  createdAt   DateTime       @default(now())
+  updatedAt   DateTime       @updatedAt
+
+  @@map("bookings")
+}
+
+model Board {
+  id        String     @id @default(uuid())
+  name      String
+  userId    String
+  user      User       @relation(fields: [userId], references: [id], onDelete: Cascade)
+  createdAt DateTime   @default(now())
+  updatedAt DateTime   @updatedAt
+  Columns   Column[]
+
+  @@map("boards")
+}
+
+model Column {
+  id        String     @id @default(uuid())
+  name      String
+  boardId   String
+  board     Board      @relation(fields: [boardId], references: [id], onDelete: Cascade)
+  order     Int
+  createdAt DateTime   @default(now())
+  updatedAt DateTime   @updatedAt
+  Cards     Card[]
+
+  @@map("columns")
+}
+
+model Card {
+  id          String    @id @default(uuid())
+  title       String
+  description String?
+  columnId    String
+  column      Column    @relation(fields: [columnId], references: [id], onDelete: Cascade)
+  order       Int
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+
+  @@map("cards")
+}
+
+model Project {
+  id          String         @id @default(uuid())
+  title       String
+  description String?
+  status      ProjectStatus  @default(NEW)
+  userId      String
+  user        User           @relation(fields: [userId], references: [id], onDelete: Cascade)
+  createdAt   DateTime       @default(now())
+  updatedAt   DateTime       @updatedAt
+
+  @@map("projects")
+}
+
+model ContactForm {
+  id          String   @id @default(cuid())
+  fullName    String
+  email       String
+  mobile      String
+  country     String
+  package     String
+  message     String
+  submittedAt DateTime @default(now())
+
+  @@map("contactForm")
+}
