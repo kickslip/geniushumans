@@ -1,25 +1,26 @@
 /** @type {import('next').NextConfig} */
 const nextConfig = {
   webpack: (config, { isServer }) => {
-    // Add WASM support
+    // Enable needed experiments
     config.experiments = {
       ...config.experiments,
+      layers: true,
       asyncWebAssembly: true,
-    }
+    };
 
-    // Add rule for WASM files
+    // Add WASM support
     config.module.rules.push({
       test: /\.wasm$/,
-      type: 'webassembly/async',
-    })
+      type: "webassembly/async",
+    });
 
-    // Externalize argon2 on the server
+    // Externalize argon2 on server
     if (isServer) {
-      config.externals = [...(config.externals || []), '@node-rs/argon2'];
+      config.externals = [...(config.externals || []), "@node-rs/argon2"];
     }
 
     return config;
-  }
+  },
 };
 
-export default nextConfig;
+module.exports = nextConfig;
